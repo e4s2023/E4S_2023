@@ -1,3 +1,4 @@
+import os
 
 import numpy as np
 import cv2
@@ -42,8 +43,8 @@ def get_landmark_once(img, gpu_mode=False):
     tddfa = TDDFA(
         gpu_mode=gpu_mode,
         arch="resnet",
-        checkpoint_fp="./TDDFA_V2/weights/resnet22.pth",
-        bfm_fp="TDDFA_V2/configs/bfm_noneck_v3.pkl",
+        checkpoint_fp=os.path.join(".", "TDDFA_V2", "weights", "resnet22.pth"),
+        bfm_fp=os.path.join("TDDFA_V2", "configs", "bfm_noneck_v3.pkl"),
         size=120,
         num_params=62,
     )

@@ -1,3 +1,5 @@
+import os
+
 import torch
 from torch import nn
 
@@ -185,10 +187,10 @@ def _iresnet(arch, block, layers, pretrained, progress, **kwargs):
     model = IResNet(block, layers, **kwargs)
     if pretrained:
         model_dir = {
-            'iresnet18': './weights/r18-backbone.pth',
-            'iresnet34': './weights/r34-backbone.pth',
-            'iresnet50': './weights/r50-backbone.pth',
-            'iresnet100': './weights/r100-backbone.pth',
+            'iresnet18': os.path.join('.', 'weights', 'r18-backbone.pth'),
+            'iresnet34': os.path.join('.', 'weights', 'r34-backbone.pth'),
+            'iresnet50': os.path.join('.', 'weights', 'r50-backbone.pth'),
+            'iresnet100': os.path.join('.', 'weights', 'r100-backbone.pth')
         }
         pre_trained_weights = torch.load(model_dir[arch], map_location=torch.device('cpu'))
 

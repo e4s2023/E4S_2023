@@ -971,11 +971,11 @@ if __name__ == '__main__':
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
 
-    img_root = '../datasets/CelebAMask-HQ/CelebA-HQ-img'
-    img_paths = glob.glob(img_root + '/*.jpg')
+    img_root = os.path.join('..', 'datasets', 'CelebAMask-HQ', 'CelebA-HQ-img')
+    img_paths = glob.glob(img_root + '{}*.jpg'.format(os.path.sep))
     print(f'{img_root} total files:', len(img_paths))
 
-    save_root = "./outputs/"
+    save_root = ".{sep}outputs{sep}".format(sep=os.path.sep)
     os.system(f'rm -r {save_root}')
 
     pose_drive = 'faceVid2Vid'
