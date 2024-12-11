@@ -3,7 +3,7 @@ from io import BytesIO
 from typing import IO
 
 from pydantic import BaseModel
-from fastapi import FastAPI
+from fastapi import FastAPI, Response, status
 
 from e4s2024 import rest_api
 from e4s2024.gradio_swap import load_image_pipeline, swap_image
@@ -33,11 +33,11 @@ rest_api_app = FastAPI(
 
 
 @rest_api_app.post("/v1/swap")
-def swap(req: SwapRequest) -> SwapResponse | ErrorResponse:
+def swap(req: SwapRequest, res: Response) -> SwapResponse | ErrorResponse:
     user_img_url = req.user_img_url  # user
     model_img_url = req.model_img_url  # model
     if user_img_url is None or model_img_url is None:
-        res.status = 400
+        res.status_code = status.HTTP_400_BAD_REQUEST
         return ErrorResponse(
             error="Missing parameter",
             error_description="Both `user_img_url` and `model_img_url` required",
