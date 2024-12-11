@@ -1,6 +1,7 @@
+import traceback
 from base64 import b64encode
 from io import BytesIO
-from typing import IO
+from typing import IO, Optional
 
 from pydantic import BaseModel
 from fastapi import FastAPI, Response, status
@@ -23,6 +24,7 @@ class SwapResponse(BaseModel):
 class ErrorResponse(BaseModel):
     error: str
     error_description: str
+    traceback: Optional[str]
 
 
 rest_api_app = FastAPI(
@@ -41,6 +43,7 @@ def swap(req: SwapRequest, res: Response) -> SwapResponse | ErrorResponse:
         return ErrorResponse(
             error="Missing parameter",
             error_description="Both `user_img_url` and `model_img_url` required",
+            traceback=None
         )
 
     if global_holder.get("image") is None:
@@ -48,12 +51,20 @@ def swap(req: SwapRequest, res: Response) -> SwapResponse | ErrorResponse:
 
     user_img_path = url_to_path(user_img_url)
     model_img_path = url_to_path(model_img_url)
-    result = swap_image(
-        global_holder["image"],
-        user_img_path,
-        model_img_path,
-        rest_api.DATA_DIR,
-    )
+    try:
+        result = swap_image(
+            global_holder["image"],
+            user_img_path,
+            model_img_path,
+            rest_api.DATA_DIR,
+        )
+    except Exception as e:
+        res.status_code = status.HTTP_400_BAD_REQUEST
+        return ErrorResponse(
+            error="Exception",
+            error_description="".join(e.args) if e.args else "{}".format(e),
+            traceback=traceback.format_exc()
+        )
     # Store the bytes on disk? - Or just send base64 to user, like below?
     iob: IO[bytes] = BytesIO()
     result.save(iob, format="png")

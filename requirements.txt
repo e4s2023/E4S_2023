@@ -1,4 +1,5 @@
 basicsr==1.4.2
+dlib==19.24.2
 einops==0.4.1
 gradio==4.44.1 ; python_version<='3.10'
 gradio==5.8.0 ; python_version>'3.10'
