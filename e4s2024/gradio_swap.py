@@ -6,8 +6,8 @@ import gradio as gr
 import cv2
 from PIL import Image
 
-from Face_swap_with_two_imgs import FaceSwap
-from face_swap_video_pipeline import FaceSwapVideoPipeline
+from e4s2024.Face_swap_with_two_imgs import FaceSwap
+from e4s2024.face_swap_video_pipeline import FaceSwapVideoPipeline
 from options.our_swap_face_pipeline_options import OurSwapFacePipelineOptions
 
 
