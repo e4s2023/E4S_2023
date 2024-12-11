@@ -1,18 +1,10 @@
 import os
 import uuid
-import glob
-import shutil
-from pathlib import Path
-from multiprocessing.pool import Pool
 
 import gradio as gr
-import torch
-from torchvision import transforms
 
 import cv2
-import numpy as np
 from PIL import Image
-from tqdm import tqdm
 
 from Face_swap_with_two_imgs import FaceSwap
 from face_swap_video_pipeline import FaceSwapVideoPipeline

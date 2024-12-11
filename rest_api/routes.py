@@ -3,7 +3,7 @@ from base64 import b64encode
 from io import BytesIO
 from typing import IO
 
-from pydantic import BaseMode
+from pydantic import BaseModel
 from fastapi import FastAPI
 
 import rest_api
@@ -11,17 +11,17 @@ from gradio_swap import swap_image_gr, load_image_pipeline, swap_image
 from rest_api.helpers import url_to_path
 
 
-class SwapRequest(BaseMode):
+class SwapRequest(BaseModel):
     user_img_url: str
     model_img_url: str
 
 
-class SwapResponse(BaseMode):
+class SwapResponse(BaseModel):
     output_url: str
     status: str
 
 
-class ErrorResponse(BaseMode):
+class ErrorResponse(BaseModel):
     error: str
     error_description: str
 

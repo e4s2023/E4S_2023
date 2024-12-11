@@ -22,6 +22,5 @@ if __name__ == "__main__":
 
     global_holder = {}
     args = _cli_parser()
-    global DATA_DIR
     DATA_DIR = args.data_dir
     uvicorn.run(rest_api_app, host=args.host, port=args.port, forwarded_allow_ips="*")
