@@ -18,7 +18,6 @@ def _cli_parser() -> ArgumentParser:
 
 
 if __name__ == "__main__":
-    global_holder = {}
     args = _cli_parser().parse_args()
     rest_api.DATA_DIR = args.data_dir
 

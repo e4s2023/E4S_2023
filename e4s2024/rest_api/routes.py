@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from fastapi import FastAPI, Response, status
 
 from e4s2024 import rest_api
-from e4s2024.gradio_swap import load_image_pipeline, swap_image
+from e4s2024.gradio_swap import load_image_pipeline, swap_image, global_holder
 from e4s2024.rest_api.helpers import url_to_path
 
 
@@ -65,7 +65,3 @@ def swap(req: SwapRequest, res: Response) -> SwapResponse | ErrorResponse:
 
     # TODO: queued rather than instant output
     return SwapResponse(output_url=output_url, status="processed")
-
-
-if __name__ == "__main__":
-    global_holder = {}

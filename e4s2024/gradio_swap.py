@@ -105,9 +105,10 @@ def swap_video_gr(img1, target_video, frames_cnt, use_crop, use_pti,
     return result_path
 
 
-if __name__ == "__main__":
-    global_holder = {}
+global_holder = {}
 
+
+if __name__ == "__main__":
     with gr.Blocks() as demo:
         gr.Markdown("E4S: Fine-Grained Face Swapping via Regional GAN Inversion")
 
