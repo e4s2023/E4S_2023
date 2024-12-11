@@ -24,14 +24,16 @@ def url_to_path(url: str) -> str:
     if url.startswith("data:image/"):
         url_part = url[len("data:image/") + 1]
         file_content = get_base64_part_decoded(url)
-        if url_part.startswith("png;base64,"):
+        if url_part.startswith("png;base64,") or url.startswith(
+            "data:image/png;base64,"
+        ):
             filepath = make_filepath("png")
         elif url_part.startswith("webm;base64,"):
             filepath = make_filepath("webm")
         elif url_part.startswith(("jpeg;base64,", "jpg;base64,")):
             filepath = make_filepath("jpg")
         else:
-            raise NotImplementedError
+            raise NotImplementedError("{}...".format(url_part[:10]))
 
         with open(filepath, "wb") as f:
             f.write(file_content)
