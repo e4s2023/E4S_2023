@@ -3,12 +3,8 @@ from PIL import Image
 import numpy as np
 import os
 from tqdm import tqdm
-from torch.nn import functional as F
-import glob
 import imageio
 from skimage.transform import resize
-from skimage import img_as_ubyte
-from scipy.ndimage.filters import gaussian_filter
 from skimage.filters import gaussian
 
 from utils.alignment import crop_faces, calc_alignment_coefficients
