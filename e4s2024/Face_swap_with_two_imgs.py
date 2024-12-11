@@ -703,7 +703,7 @@ class FaceSwap(object):
                 from swap_face_fine.face_vid2vid.drive_demo import init_facevid2vid_pretrained_model, drive_source_demo
 
                 face_vid2vid_cfg = os.path.join(PRETRAINED_ROOT, "faceVid2Vid", "vox-256.yaml")
-                face_vid2vid_ckpt = os.path.join(PRETRAINED_ROOT, "faceVid2Vid", "00000189-checkpoint.pth.tar")
+                face_vid2vid_ckpt = os.path.join(PRETRAINED_ROOT, "zhian", "00000189-checkpoint.pth.tar")
 
                 if self.vid2_generator is None or self.vid2_kp_detector is None\
                         or self.vid2_he_estimator is None or self.vid2_estimate_jacobian is None:

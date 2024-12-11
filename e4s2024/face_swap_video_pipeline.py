@@ -510,7 +510,7 @@ class FaceSwapVideoPipeline(object):
         if len(self.face_reenact_model.items()) > 0:
             return self.face_reenact_model
         face_vid2vid_cfg = os.path.join(PRETRAINED_ROOT, "faceVid2Vid", "vox-256.yaml")
-        face_vid2vid_ckpt = os.path.join(PRETRAINED_ROOT, "faceVid2Vid", "00000189-checkpoint.pth.tar")
+        face_vid2vid_ckpt = os.path.join(PRETRAINED_ROOT, "zhian", "00000189-checkpoint.pth.tar")
         generator, kp_detector, he_estimator, estimate_jacobian = init_facevid2vid_pretrained_model(
             face_vid2vid_cfg,
             face_vid2vid_ckpt
