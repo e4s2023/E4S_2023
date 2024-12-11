@@ -6,7 +6,7 @@ from typing import IO, Optional
 from pydantic import BaseModel
 from fastapi import FastAPI, Response, status
 
-from e4s2024 import rest_api
+from e4s2024 import rest_api, __version__
 from e4s2024.gradio_swap import load_image_pipeline, swap_image, global_holder
 from e4s2024.rest_api.helpers import url_to_path
 
@@ -19,6 +19,10 @@ class SwapRequest(BaseModel):
 class SwapResponse(BaseModel):
     output_url: str
     status: str
+
+
+class VersionResponse(BaseModel):
+    version: str
 
 
 class ErrorResponse(BaseModel):
@@ -34,6 +38,11 @@ rest_api_app = FastAPI(
 )
 
 
+@rest_api_app.get("/v1/swap/version")
+def version() -> VersionResponse:
+    return VersionResponse(version=__version__)
+
+
 @rest_api_app.post("/v1/swap")
 def swap(req: SwapRequest, res: Response) -> SwapResponse | ErrorResponse:
     user_img_url = req.user_img_url  # user
@@ -43,7 +52,7 @@ def swap(req: SwapRequest, res: Response) -> SwapResponse | ErrorResponse:
         return ErrorResponse(
             error="Missing parameter",
             error_description="Both `user_img_url` and `model_img_url` required",
-            traceback=None
+            traceback=None,
         )
 
     if global_holder.get("image") is None:
@@ -62,8 +71,8 @@ def swap(req: SwapRequest, res: Response) -> SwapResponse | ErrorResponse:
         res.status_code = status.HTTP_400_BAD_REQUEST
         return ErrorResponse(
             error="Exception",
-            error_description="".join(e.args) if e.args else "{}".format(e),
-            traceback=traceback.format_exc()
+            error_description=str(e.args) if e.args else "{}".format(e),
+            traceback=traceback.format_exc(),
         )
     # Store the bytes on disk? - Or just send base64 to user, like below?
     iob: IO[bytes] = BytesIO()
