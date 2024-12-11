@@ -4,6 +4,7 @@ import os
 from argparse import ArgumentParser
 
 import uvicorn
+import rest_api
 
 
 def _cli_parser() -> ArgumentParser:
@@ -12,13 +13,11 @@ def _cli_parser() -> ArgumentParser:
         "-p", "--port", default=int(os.environ.get("PORT", "3003")), type=int
     )
     parser.add_argument("--host", default=os.environ.get("HOST", "0.0.0.0"))
-    parser.add_argument("--data-dir", default=DATA_DIR)
+    parser.add_argument("--data-dir", default=rest_api.DATA_DIR)
     return parser
 
 
 if __name__ == "__main__":
-    import rest_api
-
     global_holder = {}
     args = _cli_parser()
     rest_api.DATA_DIR = args.data_dir
