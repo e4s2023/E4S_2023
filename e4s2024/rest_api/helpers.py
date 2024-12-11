@@ -1,6 +1,7 @@
 import codecs
 import os
 from base64 import standard_b64decode
+from random import randint
 from urllib.parse import urlparse
 
 import requests
@@ -13,9 +14,8 @@ def get_base64_part_decoded(url: str) -> bytes:
 
 
 def make_filepath(ext: str) -> str:
-    random_bytes = codecs.decode(os.urandom(8), "utf8")
     return os.path.join(
-        rest_api.DATA_DIR, "{}{}{}".format(random_bytes, os.path.extsep, ext)
+        rest_api.DATA_DIR, "{}{}{}".format(randint(20, 200), os.path.extsep, ext)
     )
 
 
