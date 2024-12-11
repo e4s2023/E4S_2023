@@ -170,8 +170,8 @@ class FaceParser(nn.Module):
         seg = torch.argmax(down_seg, dim=1)[0].long()
         
         # print(np.unique(seg))
-        # cv2.imwrite(os.path.join("./tmp", "mask"+os.path.basename(img_path)), seg.astype(np.uint8))
-        # vis_parsing_maps(img_path, seg, stride=1, save_im=True, save_path=os.path.join("./tmp", os.path.basename(img_path)))
+        # cv2.imwrite(os.path.join(TMP_ROOT, "mask"+os.path.basename(img_path)), seg.astype(np.uint8))
+        # vis_parsing_maps(img_path, seg, stride=1, save_im=True, save_path=os.path.join(TMP_ROOT, os.path.basename(img_path)))
 
         return seg
 

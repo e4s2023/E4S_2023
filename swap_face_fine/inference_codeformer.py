@@ -12,6 +12,7 @@ from basicsr.utils.download_util import load_file_from_url
 import numpy as np
 from PIL import Image
 
+from e4s2024 import PRETRAINED_ROOT
 # from basicsr.utils.registry import ARCH_REGISTRY
 from .archs.codeformer_arch import CodeFormer
 from utils.paste_back_tricks import Trick
@@ -34,7 +35,7 @@ def set_realesrgan():
     model = RRDBNet(num_in_ch=3, num_out_ch=3, num_feat=64, num_block=23, num_grow_ch=32, scale=4)
     upsampler = RealESRGANer(
         scale=4,
-        model_path="./pretrained/codeformer/RealESRGAN_x4plus.pth",
+        model_path=os.path.join(PRETRAINED_ROOT, "codeformer", "RealESRGAN_x4plus.pth"),
         model=model,
         tile=400,
         tile_pad=40,
@@ -78,7 +79,7 @@ def face_sr(face_img, w=0.8, upscale=2):
     # ------------------ set up CodeFormer restorer -------------------
     # net = ARCH_REGISTRY.get('CodeFormer')(dim_embd=512, codebook_size=1024, n_head=8, n_layers=9, connect_list=['32', '64', '128', '256']).to(device)
     net = CodeFormer(dim_embd=512, codebook_size=1024, n_head=8, n_layers=9, connect_list=['32', '64', '128', '256']).to(device)
-    ckpt_path = './pretrained/codeformer/codeformer.pth'
+    ckpt_path = os.path.join(PRETRAINED_ROOT, 'codeformer', 'codeformer.pth')
     # ckpt_path = load_file_from_url(url=pretrain_model_url['restoration'], model_dir='weights/CodeFormer', progress=True, file_name=None)
     checkpoint = torch.load(ckpt_path)['params_ema']
     net.load_state_dict(checkpoint)
@@ -140,7 +141,7 @@ class CodeFormerInfer(object):
         # net = ARCH_REGISTRY.get('CodeFormer')(dim_embd=512, codebook_size=1024, n_head=8, n_layers=9, connect_list=['32', '64', '128', '256']).to(device)
         net = CodeFormer(dim_embd=512, codebook_size=1024, n_head=8, n_layers=9,
                          connect_list=['32', '64', '128', '256']).to(self.device)
-        ckpt_path = './pretrained/codeformer/codeformer.pth'
+        ckpt_path = os.path.join(PRETRAINED_ROOT, 'codeformer', 'codeformer.pth')
         # ckpt_path = load_file_from_url(url=pretrain_model_url['restoration'], model_dir='weights/CodeFormer', progress=True, file_name=None)
         checkpoint = torch.load(ckpt_path)['params_ema']
         net.load_state_dict(checkpoint)
@@ -263,7 +264,7 @@ if __name__ == '__main__':
     
     # ckpt_path = 'weights/CodeFormer/codeformer.pth'
     ckpt_path = load_file_from_url(url=pretrain_model_url['restoration'], 
-                                    model_dir='./pretrained/codeformer', progress=True, file_name=None)
+                                    model_dir=os.path.join(PRETRAINED_ROOT, 'codeformer'), progress=True, file_name=None)
     checkpoint = torch.load(ckpt_path)['params_ema']
     net.load_state_dict(checkpoint)
     net.eval()

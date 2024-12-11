@@ -7,6 +7,8 @@ import PIL.Image
 import face_alignment
 from torch.autograd.grad_mode import enable_grad
 
+from e4s2024 import REPO_ROOT
+
 
 def image_align(src_file, dst_file, face_landmarks, output_size=256, transform_size=1024, enable_padding=True):
     # Align function from FFHQ dataset pre-processing step
@@ -91,8 +93,8 @@ def image_align(src_file, dst_file, face_landmarks, output_size=256, transform_s
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='A simple script to extract eye and mouth coordinates from a face image.')
-    parser.add_argument('-s', '--src', default='./raw_images', help='directory of raw images')
-    parser.add_argument('-d', '--dst', default='./aligned_images', help='directory of aligned images')
+    parser.add_argument('-s', '--src', default=os.path.join(REPO_ROOT, 'raw_images'), help='directory of raw images')
+    parser.add_argument('-d', '--dst', default=os.path.join(REPO_ROOT, 'aligned_images'), help='directory of aligned images')
     parser.add_argument('-o', '--output_size', default=256, type=int, help='size of aligned output (default: 256)')
     parser.add_argument('-t', '--transform_size', default=1024, type=int, help='size of aligned transform (default: 256)')
     parser.add_argument('--no_padding', action='store_false', help='no padding')

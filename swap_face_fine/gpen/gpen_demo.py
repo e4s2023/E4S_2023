@@ -11,6 +11,8 @@ import argparse
 import numpy as np
 from PIL import Image, ImageDraw
 import torch
+
+from e4s2024 import PRETRAINED_ROOT
 # import __init_paths
 from swap_face_fine.gpen.face_enhancement import FaceEnhancement
 
@@ -32,7 +34,7 @@ def init_gpen_pretrained_model():
     
     """
     default_model_params = {
-        "base_dir": "./pretrained/GPEN/",  # 预训练参数所在根目录，注意，这个目录下面会有 ./weights 文件夹用于存放预训练模型参数文件
+        "base_dir": os.path.join(PRETRAINED_ROOT, "GPEN") + os.path.sep,  # 预训练参数所在根目录，注意，这个目录下面会有 ./weights 文件夹用于存放预训练模型参数文件
         "in_size": 512,
         "model": "GPEN-BFR-512", 
         "use_sr": True,

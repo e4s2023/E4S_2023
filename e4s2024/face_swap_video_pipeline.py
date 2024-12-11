@@ -15,6 +15,7 @@ import torch.nn as nn
 import torchvision.transforms as transforms
 from torch.nn import functional as F
 
+from e4s2024 import PRETRAINED_ROOT
 from options.our_swap_face_pipeline_options import OurSwapFacePipelineOptions
 from utils import torch_utils
 from models.networks import Net3
@@ -508,8 +509,8 @@ class FaceSwapVideoPipeline(object):
     def _load_face_reenact_model(self):
         if len(self.face_reenact_model.items()) > 0:
             return self.face_reenact_model
-        face_vid2vid_cfg = "./pretrained/faceVid2Vid/vox-256.yaml"
-        face_vid2vid_ckpt = "./pretrained/faceVid2Vid/00000189-checkpoint.pth.tar"
+        face_vid2vid_cfg = os.path.join(PRETRAINED_ROOT, "faceVid2Vid", "vox-256.yaml")
+        face_vid2vid_ckpt = os.path.join(PRETRAINED_ROOT, "faceVid2Vid", "00000189-checkpoint.pth.tar")
         generator, kp_detector, he_estimator, estimate_jacobian = init_facevid2vid_pretrained_model(
             face_vid2vid_cfg,
             face_vid2vid_ckpt
@@ -531,7 +532,7 @@ class FaceSwapVideoPipeline(object):
     def _load_face_parsing_model(self):
         if len(self.face_parsing_model.items()) > 0:
             return self.face_parsing_model
-        face_parsing_ckpt = "./pretrained/faceseg/79999_iter.pth"
+        face_parsing_ckpt = os.path.join(PRETRAINED_ROOT, "faceseg", "79999_iter.pth")
         self.face_parsing_model["model"] = init_faceParsing_pretrained_model(face_parsing_ckpt)
         print("[FaceSwapVideoPipeline] Face parsing model loaded.")
         return self.face_parsing_model

@@ -1,4 +1,7 @@
+import os
 from argparse import ArgumentParser
+
+from e4s2024 import PRETRAINED_ROOT, SHARE_MODELS_ROOT
 
 
 class OptimOptions:
@@ -52,9 +55,9 @@ class OptimOptions:
 		self.parser.add_argument('--l2_lambda', default=1.0, type=float, help='L2 loss multiplier factor')
 		# self.parser.add_argument('--ir_se50_path', default='/apdcephfs_cq2/share_1290939/branchwang/pretrained_models/pixel2style2pixel/model_ir_se50.pth', type=str, help='Path to ir_se50 model weights')
 		self.parser.add_argument('--ir_se50_path',
-								 default='./pretrained/pixel2style2pixel/model_ir_se50.pth',
+								 default=os.path.join(PRETRAINED_ROOT, 'pixel2style2pixel', 'model_ir_se50.pth'),
 								 type=str, help='Path to ir_se50 model weights')
-		self.parser.add_argument('--face_parsing_model_path', default='/apdcephfs_cq2/share_1290939/branchwang/pretrained_models/CelebA-Mask-HQ-faceParser/model.pth', type=str, help='Path to face parsing model weights')
+		self.parser.add_argument('--face_parsing_model_path', default='{}/CelebA-Mask-HQ-faceParser/model.pth'.format(SHARE_MODELS_ROOT), type=str, help='Path to face parsing model weights')
 	
 	def parse(self):
 		opts = self.parser.parse_args()

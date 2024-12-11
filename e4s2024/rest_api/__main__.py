@@ -4,7 +4,7 @@ import os
 from argparse import ArgumentParser
 
 import uvicorn
-import rest_api
+from e4s2024 import rest_api
 
 
 def _cli_parser() -> ArgumentParser:
@@ -22,6 +22,6 @@ if __name__ == "__main__":
     args = _cli_parser()
     rest_api.DATA_DIR = args.data_dir
 
-    from rest_api.routes import rest_api_app
+    from e4s2024.rest_api.routes import rest_api_app
 
     uvicorn.run(rest_api_app, host=args.host, port=args.port, forwarded_allow_ips="*")

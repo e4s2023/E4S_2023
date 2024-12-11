@@ -4,8 +4,10 @@ from PIL import Image
 from tqdm import tqdm
 import numpy as np
 
+from e4s2024 import SHARE_PY_ROOT
+
 gt_base_dir = "/apdcephfs/share_1290939/zhianliu/datasets/CelebA-HQ/test/images"
-base_dir = "/apdcephfs/share_1290939/zhianliu/py_projects/pytorch-DDP-demo/work_dirs/ablation_study/"
+base_dir = "{}/pytorch-DDP-demo/work_dirs/ablation_study/".format(SHARE_PY_ROOT)
 
 exp_dirs = [
     "v_15_exp3_seg12_finetuneGD_8A100_remainLyrIdx11_flip_celeba_200KIters",
@@ -14,7 +16,7 @@ exp_dirs = [
     "v_15_exp2_seg12_finetuneGD_8A100_remainLyrIdx17_flip_celeba_200KIters"  
 ]
 
-save_dir = "/apdcephfs/share_1290939/zhianliu/py_projects/pytorch-DDP-demo/work_dirs/ablation_study/different_layers_recon"
+save_dir = "{}/pytorch-DDP-demo/work_dirs/ablation_study/different_layers_recon".format(SHARE_PY_ROOT)
 
 size = 256
 for i in tqdm(range(2000), total=2000):

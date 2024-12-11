@@ -3,6 +3,8 @@ import cv2
 from PIL import Image
 import torch
 import numpy as np
+
+from e4s2024 import PRETRAINED_ROOT
 from models.networks import Net3
 import torchvision.transforms as transforms
 from datasets.dataset import get_transforms, TO_TENSOR, NORMALIZE
@@ -173,14 +175,14 @@ def faceSwapping_pipeline_step12(source, target, opts, need_crop = False):
     from swap_face_fine.face_parsing.face_parsing_demo import init_faceParsing_pretrained_model, faceParsing_demo, vis_parsing_maps
     # ================= 加载模型相关 =========================
     # face_vid2vid 模型
-    face_vid2vid_cfg = "./pretrained/faceVid2Vid/vox-256.yaml"
-    face_vid2vid_ckpt = "./pretrained/faceVid2Vid/00000189-checkpoint.pth.tar"
+    face_vid2vid_cfg = os.path.join(PRETRAINED_ROOT, "faceVid2Vid", "vox-256.yaml")
+    face_vid2vid_ckpt = os.path.join(PRETRAINED_ROOT, "faceVid2Vid", "00000189-checkpoint.pth.tar")
     generator, kp_detector, he_estimator, estimate_jacobian = init_facevid2vid_pretrained_model(face_vid2vid_cfg, face_vid2vid_ckpt)
     # GPEN 模型
     GPEN_model = init_gpen_pretrained_model()  # grad bug
     
     # face parsing 模型
-    faceParsing_ckpt = "./pretrained/faceseg/79999_iter.pth"
+    faceParsing_ckpt = os.path.join(PRETRAINED_ROOT, "faceseg", "79999_iter.pth")
     faceParsing_model = init_faceParsing_pretrained_model(faceParsing_ckpt)
 
     # 定义 我们的模型 G 和相关的 Loss func

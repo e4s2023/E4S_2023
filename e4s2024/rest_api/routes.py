@@ -1,4 +1,3 @@
-import os
 from base64 import b64encode
 from io import BytesIO
 from typing import IO
@@ -6,9 +5,9 @@ from typing import IO
 from pydantic import BaseModel
 from fastapi import FastAPI
 
-import rest_api
-from gradio_swap import swap_image_gr, load_image_pipeline, swap_image
-from rest_api.helpers import url_to_path
+from e4s2024 import rest_api
+from e4s2024.gradio_swap import load_image_pipeline, swap_image
+from e4s2024.rest_api.helpers import url_to_path
 
 
 class SwapRequest(BaseModel):

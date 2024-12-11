@@ -5,7 +5,7 @@ from urllib.parse import urlparse
 
 import requests
 
-import rest_api
+from e4s2024 import rest_api
 
 
 def get_base64_part_decoded(url: str) -> bytes:

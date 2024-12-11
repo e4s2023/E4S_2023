@@ -1,4 +1,7 @@
+import os
 from argparse import ArgumentParser
+
+from e4s2024 import PRETRAINED_ROOT, SHARE_PY_ROOT
 
 
 class OurSwapFacePipelineOptions:
@@ -22,10 +25,10 @@ class OurSwapFacePipelineOptions:
         # ================= 数据集 相关 =====================
 		self.parser.add_argument('--batch_size', default=1, type=int, help='Batch size for training')
 		self.parser.add_argument('--workers', default=4, type=int, help='Number of train dataloader workers')
-		self.parser.add_argument('--target_images_dir', default='/apdcephfs/share_1290939/zhianliu/py_projects/our_editing_swappingFace_video/01_2_face', type=str)
-		self.parser.add_argument('--driven_images_dir', default='/apdcephfs/share_1290939/zhianliu/py_projects/our_editing_swappingFace_video/29698_to_01/driven', type=str)
-		self.parser.add_argument('--UI_edit_masks_dir', default='/apdcephfs/share_1290939/zhianliu/py_projects/our_editing_swappingFace_video/29698_to_01/edit_mask', type=str)
-		self.parser.add_argument('--swapped_style_vectors_dir', default='/apdcephfs/share_1290939/zhianliu/py_projects/our_editing_swappingFace_video/29698_to_01/FFHQ_model_video_swap_styleVec', type=str)
+		self.parser.add_argument('--target_images_dir', default='{}/our_editing_swappingFace_video/01_2_face'.format(SHARE_PY_ROOT), type=str)
+		self.parser.add_argument('--driven_images_dir', default='{}/our_editing_swappingFace_video/29698_to_01/driven'.format(SHARE_PY_ROOT), type=str)
+		self.parser.add_argument('--UI_edit_masks_dir', default='{}/our_editing_swappingFace_video/29698_to_01/edit_mask'.format(SHARE_PY_ROOT), type=str)
+		self.parser.add_argument('--swapped_style_vectors_dir', default='{}/our_editing_swappingFace_video/29698_to_01/FFHQ_model_video_swap_styleVec'.format(SHARE_PY_ROOT), type=str)
 
         # ================= 训练 相关 =====================
 		self.parser.add_argument('--train_G', default=True, type=bool, help='Whether to train the model')
@@ -55,16 +58,16 @@ class OurSwapFacePipelineOptions:
         # ir_se50 预训练权重, for id_loss
 		# self.parser.add_argument('--ir_se50_path', default='/apdcephfs/share_1290939/zhianliu/pretrained_models/pixel2style2pixel/model_ir_se50.pth', type=str, help='Path to ir_se50 model weights')
 		self.parser.add_argument('--ir_se50_path',
-								 default='./pretrained/pixel2style2pixel/model_ir_se50.pth',
+								 default=os.path.join(PRETRAINED_ROOT, 'pixel2style2pixel', 'model_ir_se50.pth'),
 								 type=str, help='Path to ir_se50 model weights')
 		# self.parser.add_argument('--face_parsing_model_path', default='/apdcephfs/share_1290939/zhianliu/pretrained_models/CelebA-Mask-HQ-faceParser/model.pth', type=str, help='Path to face parsing model weights')
 		self.parser.add_argument('--face_parsing_model_path',
-								 default='./pretrained/faceseg/model.pth',
+								 default=os.path.join(PRETRAINED_ROOT, 'faceseg', 'model.pth'),
 								 type=str, help='Path to face parsing model weights')
 		# self.parser.add_argument('--checkpoint_path', default='/apdcephfs/share_1290939/zhianliu/running_results/our_editing/work_dirs/v_15_hybrid_stage1_seg12_finetuneGD_8A100_pspHyperParas_remainLyrIdx13_flip_FFHQ_300KIters/checkpoints/iteration_300000_belowPyTorch1_6.pt', type=str, help='Path to model checkpoint')
 		# self.parser.add_argument('--checkpoint_path', default='/apdcephfs/share_1290939/zhianliu/running_results/our_editing/work_dirs/v_15_hybrid_stage1_seg12_finetuneGD_8A100_pspHyperParas_remainLyrIdx13_flip_FFHQ_300KIters/checkpoints/iteration_300000.pt', type=str, help='Path to model checkpoint')
-		self.parser.add_argument('--checkpoint_path', default='./pretrained/E4S/iteration_300000.pt', type=str, help='Path to model checkpoint')
-		self.parser.add_argument('--PTI_checkpoint_path', default='/apdcephfs/share_1290939/zhianliu/py_projects/pytorch-DDP-demo/work_dirs/v_18_video_swapping/musk_to_874/finetuned_G_lr1e3_iters150_erode.pth', type=str, help='Path to PTI finetuned model checkpoint')
+		self.parser.add_argument('--checkpoint_path', default=os.path.join(PRETRAINED_ROOT, 'E4S' , 'iteration_300000.pt'), type=str, help='Path to model checkpoint')
+		self.parser.add_argument('--PTI_checkpoint_path', default='{}/pytorch-DDP-demo/work_dirs/v_18_video_swapping/musk_to_874/finetuned_G_lr1e3_iters150_erode.pth'.format(SHARE_PY_ROOT), type=str, help='Path to PTI finetuned model checkpoint')
 		# self.parser.add_argument('--checkpoint_path', default='/apdcephfs/share_1290939/zhianliu/running_results/our_editing/work_dirs/v_15_hybrid_stage1_seg12_finetuneGD_8A100_pspHyperParas_remainLyrIdx13_flip_200KIters/checkpoints/iteration_120000.pt', type=str, help='Path to model checkpoint')
 
 		

@@ -1,57 +1,31 @@
 import copy
 import cv2
-import matplotlib.pyplot as plt
-from datasets.dataset import CelebAHQDataset, get_transforms
 from PIL import Image
-import os.path as osp
 import torch
-from argparse import Namespace
 import numpy as np
-from utils.torch_utils import saveTensorToFile, readImgAsTensor
-from models.networks import Net3
-from options.train_options import TrainOptions
 import torchvision.transforms as transforms
-from datasets.dataset import CelebAHQDataset, get_transforms, TO_TENSOR, NORMALIZE, MASK_CONVERT_TF, FFHQDataset, FFHQ_MASK_CONVERT_TF, MASK_CONVERT_TF_DETAILED, __celebAHQ_masks_to_faceParser_mask_detailed
+from datasets.dataset import TO_TENSOR, NORMALIZE
+from e4s2024 import PRETRAINED_ROOT, SHARE_PY_ROOT, SHARE_MODELS_ROOT
 from utils import torch_utils
 import os
-from tqdm import tqdm
 from torch.nn import functional as F
-import glob
-import random
-import torch.nn as nn
-from headpose.detect import PoseEstimator
-import math
 
-import imageio
-from torch.utils.data import Dataset
 from skimage.transform import resize
-from skimage import img_as_ubyte
-from criteria.id_loss import IDLoss
-from criteria.face_parsing.face_parsing_loss import FaceParsingLoss
-from criteria.lpips.lpips import LPIPS
-from collections import defaultdict
-from tqdm import trange
-from options.our_swap_face_pipeline_options import OurSwapFacePipelineOptions
-from swap_face_fine.color_transfer import skin_color_transfer
 from swap_face_fine.multi_band_blending import blending
 
-from swap_face_fine.face_parsing.face_parsing_demo import init_faceParsing_pretrained_model, faceParsing_demo, vis_parsing_maps
+from swap_face_fine.face_parsing.face_parsing_demo import init_faceParsing_pretrained_model, faceParsing_demo
 
-from swap_face_fine.swap_face_mask import swap_head_mask_revisit, swap_head_mask_revisit_considerGlass, swap_head_mask_hole_first, swap_head_mask_target_bg_dilation
+from swap_face_fine.swap_face_mask import swap_head_mask_hole_first
 
 from utils.alignment import crop_faces, calc_alignment_coefficients
-from utils.morphology import dilation, erosion, opening
-from utils.util import save, get_5_from_98, get_detector, get_lmk
-from swap_face_fine.MISF.inpainting import inpainting_face
-from swap_face_fine.deformation_demo import image_deformation
+from utils.morphology import dilation, erosion
 
 # from PIPNet.lib.tools import get_lmk_model, demo_image
-from alignment import norm_crop, norm_crop_with_M
 
 
 # ================= 加载模型相关 =========================
 # face parsing 模型
-faceParsing_ckpt = "./pretrained/faceseg/79999_iter.pth"
+faceParsing_ckpt = os.path.join(PRETRAINED_ROOT, "faceseg", "79999_iter.pth")
 faceParsing_model = init_faceParsing_pretrained_model(faceParsing_ckpt)
 
 def create_masks(mask, operation='dilation', radius=0):
@@ -255,7 +229,7 @@ def faceSwapping_pipeline(source,
 
     # ========================================= pose alignment ===============================================
     """
-    est = PoseEstimator(weights='/apdcephfs_cq2/share_1290939/branchwang/pretrained_models/headpose/model_weights.zip')
+    est = PoseEstimator(weights='{}/headpose/model_weights.zip'.format(SHARE_MODELS_ROOT))
     need_drive = False
     try:
         pose_s = est.pose_from_image(image=np.array(S))
@@ -274,7 +248,7 @@ def faceSwapping_pipeline(source,
             from swap_face_fine.TPSMM.demo import drive_source_demo
 
             cfg_path = "/apdcephfs_cq2/share_1290939/branchwang/projects/Thin-Plate-Spline-Motion-Model/config/vox-256.yaml"
-            ckpt_path = "/apdcephfs_cq2/share_1290939/branchwang/pretrained_models/Thin-Plate-Spline-Motion-Model/checkpoints/vox.pth.tar"
+            ckpt_path = "{}/Thin-Plate-Spline-Motion-Model/checkpoints/vox.pth.tar".format(SHARE_MODELS_ROOT)
 
             driven = drive_source_demo(S_256, T_256, cfg_path=cfg_path, ckpt_path=ckpt_path)
             driven = (driven * 255).astype(np.uint8)
@@ -598,11 +572,11 @@ def faceSwapping_pipeline(source,
 @torch.no_grad()
 def interpolation(souece_name, target_name):
     T = Image.open("/apdcephfs/share_1290939/zhianliu/datasets/CelebA-HQ/test/images/%s.jpg"%target_name).convert("RGB").resize((1024, 1024))
-    save_dir = "/apdcephfs/share_1290939/zhianliu/py_projects/our_editing/tmp"
+    save_dir = "{}/our_editing/tmp".format(SHARE_PY_ROOT)
     result_name = "swap_%s_to_%s"%(souece_name, target_name)
-    style_vectors1 =  torch.load("/apdcephfs/share_1290939/zhianliu/py_projects/our_editing/tmp/swapped_style_vec.pt")
-    style_vectors2 =  torch.load("/apdcephfs/share_1290939/zhianliu/py_projects/our_editing/tmp/T_style_vec.pt")
-    mask = torch.from_numpy(np.array(Image.open("/apdcephfs/share_1290939/zhianliu/py_projects/our_editing/tmp/swappedMask.png").convert("L")))
+    style_vectors1 =  torch.load("{}/our_editing/tmp/swapped_style_vec.pt".format(SHARE_PY_ROOT))
+    style_vectors2 =  torch.load("{}/our_editing/tmp/T_style_vec.pt".format(SHARE_PY_ROOT))
+    mask = torch.from_numpy(np.array(Image.open("{}/our_editing/tmp/swappedMask.png".format(SHARE_PY_ROOT)).convert("L")))
     
     mask = mask.unsqueeze(0).unsqueeze(0).long().to(opts.device)
     onehot = torch_utils.labelMap2OneHot(mask, num_cls=opts.num_seg_cls)
@@ -668,6 +642,6 @@ for source_name, target_name in zip(source_names, target_names):
     target = os.path.join(image_dir, "%s.jpg"%target_name)
     target_mask = Image.open(os.path.join(label_dir, "%s.png"%target_name)).convert("L")
     target_mask_seg12 = __celebAHQ_masks_to_faceParser_mask_detailed(target_mask)      
-    faceSwapping_pipeline(source, target, opts, save_dir="./tmp", target_mask = target_mask_seg12, need_crop = False, verbose = True) 
+    faceSwapping_pipeline(source, target, opts, save_dir=TMP_ROOT, target_mask = target_mask_seg12, need_crop = False, verbose = True) 
     interpolation(source_name, target_name)
 """

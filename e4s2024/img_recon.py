@@ -4,6 +4,7 @@ This file runs the main training/val loop
 from torch.utils.data import DataLoader
 import torchvision.transforms as transforms
 from datasets.dataset import CelebAHQDataset, get_transforms, TO_TENSOR, NORMALIZE, MASK_CONVERT_TF, MASK_CONVERT_TF_DETAILED
+from e4s2024 import PRETRAINED_ROOT, TMP_ROOT, SHARE_PY_ROOT
 from models.networks import Net3
 from options.test_options import TestOptions
 import glob
@@ -19,13 +20,13 @@ from PIL import Image
 from options.swap_face_options import SwapFaceOptions
 from swap_face_fine.face_parsing.face_parsing_demo import init_faceParsing_pretrained_model, faceParsing_demo, vis_parsing_maps
 
-sys.path.append(".")
 sys.path.append("..")
+sys.path.append("../..")
 
 
 # 重建一张/几张图片
 @torch.no_grad()
-def recon_imgs(opts, imgs_path, out_dir="./tmp"): 
+def recon_imgs(opts, imgs_path, out_dir=TMP_ROOT):
     net = Net3(opts).eval().to(opts.device)
     ckpt_dict=torch.load("/apdcephfs/share_1290939/zhianliu/running_results/our_editing/work_dirs/ablation_study/v_15_baseline_seg12_finetuneGD_8A100_remainLyrIdx13_flip_FFHQ_300KIters/checkpoints/iteration_300000.pt")
     net.latent_avg = ckpt_dict['latent_avg'].to(opts.device)
@@ -33,7 +34,7 @@ def recon_imgs(opts, imgs_path, out_dir="./tmp"):
     print("Load pre-trained weights.")        
 
     # face parsing 模型
-    faceParsing_ckpt = "./pretrained/faceseg/79999_iter.pth"
+    faceParsing_ckpt = os.path.join(PRETRAINED_ROOT, "faceseg", "79999_iter.pth")
     faceParsing_model = init_faceParsing_pretrained_model(faceParsing_ckpt)
 
     for idx, img_path in enumerate(tqdm(imgs_path)):
@@ -94,7 +95,7 @@ def recon_then_edit(opts, samples, out_dir="./tmp2"):
         noise.append(torch.randn(1,channels[i],i,i).to(opts.device))
         
     net = Net3(opts).eval().to(opts.device)
-    ckpt_dict=torch.load("/apdcephfs/share_1290939/zhianliu/py_projects/pytorch-DDP-demo/work_dirs/v_15_hybrid_stage1_seg12_finetuneGD_8A100_pspHyperParas_remainLyrIdx13_flip_200KIters/checkpoints/iteration_120000.pt")
+    ckpt_dict=torch.load("{}/pytorch-DDP-demo/work_dirs/v_15_hybrid_stage1_seg12_finetuneGD_8A100_pspHyperParas_remainLyrIdx13_flip_200KIters/checkpoints/iteration_120000.pt".format(SHARE_PY_ROOT))
     net.latent_avg = ckpt_dict['latent_avg'].to(opts.device)
     net.load_state_dict(torch_utils.remove_module_prefix(ckpt_dict["state_dict"],prefix="module."))
     print("Load pre-trained weights.")        

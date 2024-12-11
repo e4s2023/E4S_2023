@@ -1,16 +1,18 @@
+import os
 
 import torch
 from PIL import Image
 import numpy as np
 import cv2
 
+from e4s2024 import PRETRAINED_ROOT
 # import sys
 # sys.path.insert(0, "/apdcephfs_cq2/share_1290939/branchwang/projects/GCFSR")
 
 from .gcfsr_arch import FaceInpaintingArch
 
 
-model_path = './pretrained/inpainting/net_g_50000.pth'
+model_path = os.path.join(PRETRAINED_ROOT, 'inpainting', 'net_g_50000.pth')
 model = FaceInpaintingArch(out_size=256)
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 

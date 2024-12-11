@@ -1,5 +1,9 @@
+import os
+
 import numpy as np
 import PIL
+
+from e4s2024 import PRETRAINED_ROOT
 
 
 def get_landmark(img, use_fa=False):
@@ -13,7 +17,7 @@ def get_landmark(img, use_fa=False):
     else:
         import dlib
         fa = None
-        predictor = dlib.shape_predictor("./pretrained/E4S/shape_predictor_68_face_landmarks.dat")
+        predictor = dlib.shape_predictor(os.path.join(PRETRAINED_ROOT, "E4S", "shape_predictor_68_face_landmarks.dat"))
         detector = dlib.get_frontal_face_detector()
 
     if isinstance(img, PIL.Image.Image):
