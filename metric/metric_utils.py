@@ -10,7 +10,7 @@ from tqdm import tqdm
 import pandas as pd
 import shutil
 
-from e4s2024 import SHARE_PY_ROOT
+from e4s2024 import SHARE_PY_ROOT, DATASETS_ROOT, PRETRAINED_SHARE_ROOT
 
 
 def mv_imgs():
@@ -19,7 +19,7 @@ def mv_imgs():
     for img_name in tqdm(range(2000)):
         shutil.copyfile(
             osp.join(recon_base_dir,"%05d"%(img_name+28000),"%05d_0050.png"%(img_name+28000)),
-            osp.join("/apdcephfs/share_1290939/zhianliu/pretrained_models/sofGAN/tmp","%05d_0050.png"%(img_name+28000)),
+            osp.join("{}/sofGAN/tmp".format(PRETRAINED_SHARE_ROOT),"%05d_0050.png"%(img_name+28000)),
         )
 
 def calculate_metrics(size=1024):
@@ -45,7 +45,7 @@ def calculate_metrics(size=1024):
         recon_base_dir = "{}/pytorch-DDP-demo/work_dirs/ablation_study/v_15_exp8_seg12_finetuneGD_8A100_remainLyrIdx13_flip_celeba_200KIters_noMsEncoder/test_recon_200000".format(SHARE_PY_ROOT)
         recon = np.asarray(Image.open(osp.join(recon_base_dir,"%05d_recon_face.png"%(img_name+28000))).resize((size, size)))
 
-        gt_base_dir = "/apdcephfs/share_1290939/zhianliu/datasets/CelebA-HQ/test/images"
+        gt_base_dir = "{}/CelebA-HQ/test/images".format(DATASETS_ROOT)
         gt = np.asarray(Image.open(osp.join(gt_base_dir,"%05d.jpg"%(img_name+28000))).resize((size, size)))
         
         img_names.append("%05d_recon_face.jpg"%(img_name+28000))

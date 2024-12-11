@@ -4,7 +4,7 @@ This file runs the main training/val loop
 from torch.utils.data import DataLoader
 import torchvision.transforms as transforms
 from datasets.dataset import CelebAHQDataset, get_transforms, TO_TENSOR, NORMALIZE, MASK_CONVERT_TF, MASK_CONVERT_TF_DETAILED
-from e4s2024 import PRETRAINED_ROOT, TMP_ROOT, SHARE_PY_ROOT
+from e4s2024 import PRETRAINED_ROOT, TMP_ROOT, SHARE_PY_ROOT, DATASETS_ROOT
 from models.networks import Net3
 from options.test_options import TestOptions
 import glob
@@ -102,8 +102,8 @@ def recon_then_edit(opts, samples, out_dir="./tmp2"):
 
     
     for sample_name in sampels:
-        img_path = os.path.join("/apdcephfs/share_1290939/zhianliu/datasets/CelebA-HQ/test/images/%s.jpg"%sample_name)
-        orig_mask_path = os.path.join("/apdcephfs/share_1290939/zhianliu/datasets/CelebA-HQ/test/labels/%s.png"%sample_name)
+        img_path = os.path.join(DATASETS_ROOT, "CelebA-HQ", "test", "images", "%s.jpg"%sample_name)
+        orig_mask_path = os.path.join(DATASETS_ROOT, "CelebA-HQ", "test", "labels", "%s.png"%sample_name)
         edit_mask_path = os.path.join("./tmp2/%s_edit_mask.png"%sample_name)
         
         img_pil = Image.open(img_path).convert("RGB")

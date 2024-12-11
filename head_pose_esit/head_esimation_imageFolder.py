@@ -11,6 +11,7 @@ from PIL import Image
 import dlib
 from tqdm import tqdm
 
+from e4s2024 import DATASETS_ROOT, PRETRAINED_SHARE_ROOT
 from head_pose_esit import hopenet,utils, datasets
 
 join = os.path.join
@@ -21,13 +22,13 @@ def parse_args():
     parser.add_argument('--gpu', dest='gpu_id', help='GPU device id to use. Default: 0',
                         default=0, type=int)
     parser.add_argument('--snapshot', dest='snapshot', help='Path of model snapshot. Default: hopenet_robust_alpha1.pkl',
-                        default='/apdcephfs/share_1290939/zhianliu/pretrained_models/Hopenet/hopenet_robust_alpha1.pkl', type=str)
+                        default='{}/Hopenet/hopenet_robust_alpha1.pkl'.format(PRETRAINED_SHARE_ROOT), type=str)
     parser.add_argument('--face_model', dest='face_model', help='Path of DLIB face detection model. Default: mmod_human_face_detector.dat',
                         default='./head_pose_esit/mmod_human_face_detector.dat', type=str)
     parser.add_argument('-i', '--input folder', dest='input_path', help='Path of image folder',
-                        default='/apdcephfs/share_1290939/zhianliu/datasets/CelebA-HQ-ourSwap500/MegaFS', type=str)
+                        default='{}/CelebA-HQ-ourSwap500/MegaFS'.format(DATASETS_ROOT), type=str)
     parser.add_argument('-o', '--output_txt', dest='output', help='Output path of txt file. Default: output/celeba.txt. \nNote: you must write output in this format',
-                        default='/apdcephfs/share_1290939/zhianliu/datasets/CelebA-HQ-ourSwap500/MegaFS_headPose.txt', type=str)
+                        default='{}/CelebA-HQ-ourSwap500/MegaFS_headPose.txt'.format(DATASETS_ROOT), type=str)
     parser.add_argument('-f', '--flag', dest='flag', help='1: write the images; 0: do not write the images. Default: 1',
                         default='1', type=int)
     args = parser.parse_args()

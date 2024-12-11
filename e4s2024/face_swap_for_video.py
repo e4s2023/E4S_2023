@@ -5,7 +5,7 @@ import torch
 import numpy as np
 import torchvision.transforms as transforms
 from datasets.dataset import TO_TENSOR, NORMALIZE
-from e4s2024 import SHARE_PY_ROOT, SHARE_MODELS_ROOT
+from e4s2024 import SHARE_PY_ROOT, SHARE_MODELS_ROOT, DATASETS_ROOT
 from utils import torch_utils
 import os
 from torch.nn import functional as F
@@ -663,7 +663,7 @@ def faceSwapping_pipeline(source,
     
 @torch.no_grad()
 def interpolation(souece_name, target_name):
-    T = Image.open("/apdcephfs/share_1290939/zhianliu/datasets/CelebA-HQ/test/images/%s.jpg"%target_name).convert("RGB").resize((1024, 1024))
+    T = Image.open("{}/CelebA-HQ/test/images/%s.jpg".format(DATASETS_ROOT)%target_name).convert("RGB").resize((1024, 1024))
     save_dir = "{}/our_editing/tmp".format(SHARE_PY_ROOT)
     result_name = "swap_%s_to_%s"%(souece_name, target_name)
     style_vectors1 =  torch.load("{}/our_editing/tmp/swapped_style_vec.pt".format(SHARE_PY_ROOT))

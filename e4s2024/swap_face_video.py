@@ -4,6 +4,7 @@ import numpy as np
 import glob
 import os
 
+from e4s2024 import DATASETS_ROOT
 from face_swap_for_video import faceSwapping_pipeline
 from options.our_swap_face_pipeline_options import OurSwapFacePipelineOptions
 from models.networks import Net3
@@ -13,7 +14,7 @@ from utils import torch_utils
 
 
 
-source = '/apdcephfs/share_1290939/zhianliu/datasets/video_swapping_demo/celebrate/zelensky.jpg'
+source = '{}/video_swapping_demo/celebrate/zelensky.jpg'.format(DATASETS_ROOT)
 target_path = '/apdcephfs_cq2/share_1290939/branchwang/projects/E4S/swap_face_video_res/swap_zelensky_to_target1/crop/'
 
 n = 200

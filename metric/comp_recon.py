@@ -4,9 +4,9 @@ from PIL import Image
 from tqdm import tqdm
 import numpy as np
 
-from e4s2024 import SHARE_PY_ROOT
+from e4s2024 import SHARE_PY_ROOT, DATASETS_ROOT
 
-gt_base_dir = "/apdcephfs/share_1290939/zhianliu/datasets/CelebA-HQ/test/images"
+gt_base_dir = "{}/CelebA-HQ/test/images".format(DATASETS_ROOT)
 base_dir = "{}/pytorch-DDP-demo/work_dirs/ablation_study/".format(SHARE_PY_ROOT)
 
 exp_dirs = [

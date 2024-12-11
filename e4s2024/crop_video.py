@@ -7,7 +7,7 @@ import imageio
 from skimage.transform import resize
 from skimage.filters import gaussian
 
-from e4s2024 import TMP_ROOT, SHARE_PY_ROOT
+from e4s2024 import TMP_ROOT, SHARE_PY_ROOT, DATASETS_ROOT
 from utils.alignment import crop_faces, calc_alignment_coefficients
 
 
@@ -140,7 +140,7 @@ def crop_imgs(files):
 
 def anti_aliasing_test():  # 下采样抗锯齿测试
 
-    src_img_dir = "/apdcephfs/share_1290939/zhianliu/datasets/CelebA-HQ/test/images"
+    src_img_dir = "{}/CelebA-HQ/test/images".format(DATASETS_ROOT)
     idx = [1989,61]
     img_names = ["%05d.jpg"%(i+28000) for i in idx]
     source_names = [os.path.join(src_img_dir, name) for name in img_names]

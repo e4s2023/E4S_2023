@@ -5,7 +5,7 @@ import torch
 import numpy as np
 import torchvision.transforms as transforms
 from datasets.dataset import TO_TENSOR, NORMALIZE
-from e4s2024 import PRETRAINED_ROOT, SHARE_PY_ROOT, SHARE_MODELS_ROOT
+from e4s2024 import PRETRAINED_ROOT, SHARE_PY_ROOT, SHARE_MODELS_ROOT, DATASETS_ROOT
 from utils import torch_utils
 import os
 from torch.nn import functional as F
@@ -571,7 +571,7 @@ def faceSwapping_pipeline(source,
     
 @torch.no_grad()
 def interpolation(souece_name, target_name):
-    T = Image.open("/apdcephfs/share_1290939/zhianliu/datasets/CelebA-HQ/test/images/%s.jpg"%target_name).convert("RGB").resize((1024, 1024))
+    T = Image.open("{}/CelebA-HQ/test/images/%s.jpg".format(DATASETS_ROOT)%target_name).convert("RGB").resize((1024, 1024))
     save_dir = "{}/our_editing/tmp".format(SHARE_PY_ROOT)
     result_name = "swap_%s_to_%s"%(souece_name, target_name)
     style_vectors1 =  torch.load("{}/our_editing/tmp/swapped_style_vec.pt".format(SHARE_PY_ROOT))
@@ -635,8 +635,8 @@ def interpolation(souece_name, target_name):
 """
 source_names = ["28688"]
 target_names = ["28558"]
-image_dir = "/apdcephfs/share_1290939/zhianliu/datasets/CelebA-HQ/test/images"
-label_dir = "/apdcephfs/share_1290939/zhianliu/datasets/CelebA-HQ/test/labels"
+image_dir = "{}/CelebA-HQ/test/images".format(DATASETS_ROOT)
+label_dir = "{}/CelebA-HQ/test/labels".format(DATASETS_ROOT)
 for source_name, target_name in zip(source_names, target_names):
     source = os.path.join(image_dir, "%s.jpg"%source_name)
     target = os.path.join(image_dir, "%s.jpg"%target_name)

@@ -7,7 +7,7 @@ from numpy import linalg as LA
 import glob
 import cv2
 
-from e4s2024 import TMP_ROOT, SHARE_PY_ROOT
+from e4s2024 import TMP_ROOT, SHARE_PY_ROOT, DATASETS_ROOT
 
 
 def show_hole_map():
@@ -24,7 +24,7 @@ def show_hole_map():
 
 
 def ablation_recon_compare():  # ablation study 的可视化比较
-    gt_base_dir = "/apdcephfs/share_1290939/zhianliu/datasets/CelebA-HQ/test/images"
+    gt_base_dir = "{}/CelebA-HQ/test/images".format(DATASETS_ROOT)
     recon_base_dir = "{}/pytorch-DDP-demo/work_dirs/ablation_study/".format(SHARE_PY_ROOT)
     save_dir = "{}/pytorch-DDP-demo/work_dirs/ablation_study/recon_comp".format(SHARE_PY_ROOT)
     

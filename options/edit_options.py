@@ -1,5 +1,7 @@
 from argparse import ArgumentParser
 
+from e4s2024 import DATASETS_ROOT
+
 
 class EditOptions:
 
@@ -18,7 +20,7 @@ class EditOptions:
 		self.parser.add_argument('--remaining_layer_idx', type=int, default=13, help='剩余的几层不用mask')
   
         # ================= 数据集 相关 =====================
-		self.parser.add_argument('--dataset_root', default='/apdcephfs/share_1290939/zhianliu/datasets/CelebA-HQ', type=str, help='dataset root path')
+		self.parser.add_argument('--dataset_root', default='{}/CelebA-HQ'.format(DATASETS_ROOT), type=str, help='dataset root path')
 		self.parser.add_argument('--ds_frac', default=1.0, type=float, help='dataset fraction')
 		self.parser.add_argument('--test_batch_size', default=1, type=int, help='Batch size for testing and inference')
 		self.parser.add_argument('--test_workers', default=4, type=int, help='Number of test/inference dataloader workers')
