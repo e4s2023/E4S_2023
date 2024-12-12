@@ -3,9 +3,9 @@ from fastapi import FastAPI, Response, status
 
 from e4s2024 import __version__
 from e4s2024.gradio_swap import load_image_pipeline, global_holder
-from e4s2024.rest_api.helpers import url_to_path
-from e4s2024.rest_api.tasks import swap_image_task
-from e4s2024.rest_api.types import (
+from e4s2024.exposed.helpers import url_to_path
+from e4s2024.exposed.tasks import swap_image_task
+from e4s2024.exposed.types import (
     SwapRequest,
     SwapResponse,
     QueuedResponse,
@@ -64,7 +64,7 @@ def get_status(task_id) -> TaskQueueStatusResponse:
     #         global_holder["image"],
     #         user_img_path,
     #         model_img_path,
-    #         rest_api.DATA_DIR,
+    #         exposed.DATA_DIR,
     #     )
     # except Exception as e:
     #     res.status_code = status.HTTP_400_BAD_REQUEST

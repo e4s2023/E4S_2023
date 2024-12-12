@@ -1,4 +1,3 @@
-import codecs
 import os
 from base64 import standard_b64decode
 from random import randint
@@ -6,7 +5,7 @@ from urllib.parse import urlparse
 
 import requests
 
-from e4s2024 import rest_api
+from e4s2024 import exposed
 
 
 def get_base64_part_decoded(url: str) -> bytes:
@@ -15,7 +14,7 @@ def get_base64_part_decoded(url: str) -> bytes:
 
 def make_filepath(ext: str) -> str:
     return os.path.join(
-        rest_api.DATA_DIR, "{}{}{}".format(randint(20, 200), os.path.extsep, ext)
+        exposed.DATA_DIR, "{}{}{}".format(randint(20, 200), os.path.extsep, ext)
     )
 
 
@@ -41,7 +40,7 @@ def url_to_path(url: str) -> str:
     elif url.startswith(("http://", "https://")):
         parse = urlparse(url)
         name = parse.path.replace("/", "__")
-        filepath = os.path.join(rest_api.DATA_DIR, name)
+        filepath = os.path.join(exposed.DATA_DIR, name)
         # Cache check
         if not os.path.isfile(filepath):
             content = requests.get(url).content
