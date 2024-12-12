@@ -1,6 +1,8 @@
 import os
 
+__author__ = "Maomao Li, Ge Yuan, Cairong Wang, Zhian Liu, Yong Zhang, Yongwei Nie, Jue Wang, Dong Xu"
 __version__ = "0.0.1"
+__description__ = "A Face Swapping and Editing Framework Based on StyleGAN Latent Space"
 
 REPO_ROOT = os.path.dirname(os.path.dirname(__file__))
 DATASETS_ROOT = os.environ.get(

@@ -53,7 +53,7 @@ def init_gpen_pretrained_model():
                             narrow=default_model_params["narrow"], 
                             key=None, device='cuda')
     
-    print("Load GPEN pre-traiend model success!")
+    print("Load GPEN pre-trained model success!")
     
     return model
 

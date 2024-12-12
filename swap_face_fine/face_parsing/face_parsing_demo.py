@@ -180,7 +180,7 @@ class FaceParser(nn.Module):
 def init_faceParsing_pretrained_model(ckpt_path):
     parser = FaceParser(seg_ckpt=ckpt_path)
 
-    print("Load faceParsing pre-traiend model success!")
+    print("Load faceParsing pre-trained model success!")
 
     return parser
 

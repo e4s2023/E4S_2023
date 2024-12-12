@@ -1,21 +1,14 @@
 import sys
 sys.path.append('./PWC-Net/PyTorch/')
-import os
 import cv2
 import torch
 import numpy as np
 from math import ceil
-import time
 from torch.autograd import Variable
 # from scipy.ndimage import imread
-from scipy.misc import imsave, imread
+from scipy.misc import imread
 
-import models
-import os
-from glob import glob
-import flowlib as fl
 import torch.nn as nn
-from PIL import Image as PILImage
 from networks.resample2d_package.modules.resample2d import Resample2d
 
 
