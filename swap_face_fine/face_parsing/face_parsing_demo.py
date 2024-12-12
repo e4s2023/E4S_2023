@@ -10,7 +10,8 @@ import torchvision
 from torch.nn import functional as F
 
 from datasets.dataset import __ffhq_masks_to_faceParser_mask_detailed
-from swap_face_fine.face_parsing.model import BiSeNet, seg_mean, seg_std
+if not os.environ.get("SKIP_RUN", False):
+    from swap_face_fine.face_parsing.model import BiSeNet, seg_mean, seg_std
 
 class BicubicDownSample(nn.Module):
     def bicubic_kernel(self, x, a=-0.50):

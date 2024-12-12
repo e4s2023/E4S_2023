@@ -11,6 +11,7 @@ imageio>=2.33
 ninja==1.11.1
 numexpr==2.8.8
 numpy==1.23.5
+redis
 scikit-image==0.24.0
 tensorboardX==2.6.2.2
 torch-fidelity==0.3.0

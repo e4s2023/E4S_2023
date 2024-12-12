@@ -1,45 +1,22 @@
-import traceback
-from base64 import b64encode
-from io import BytesIO
-from typing import IO, Optional
-
 from celery.result import AsyncResult
-from pydantic import BaseModel
 from fastapi import FastAPI, Response, status
 
-from e4s2024 import rest_api, __version__
-from e4s2024.gradio_swap import load_image_pipeline, swap_image, global_holder
+from e4s2024 import __version__
+from e4s2024.gradio_swap import load_image_pipeline, global_holder
 from e4s2024.rest_api.helpers import url_to_path
 from e4s2024.rest_api.tasks import swap_image_task
-
-
-class SwapRequest(BaseModel):
-    user_img_url: str
-    model_img_url: str
-
-
-class SwapResponse(BaseModel):
-    output_url: str
-    status: str
-
-
-class QueuedResponse(BaseModel):
-    task_id: str
-
-
-class VersionResponse(BaseModel):
-    version: str
-
-
-class ErrorResponse(BaseModel):
-    error: str
-    error_description: str
-    traceback: Optional[str]
-
+from e4s2024.rest_api.types import (
+    SwapRequest,
+    SwapResponse,
+    QueuedResponse,
+    VersionResponse,
+    ErrorResponse,
+    TaskQueueStatusResponse,
+)
 
 rest_api_app = FastAPI(
-    openapi_url="/swap_docs/openapi.json",
-    redoc_url="/swap_docs/redoc",
+    openapi_url="/v1/swap_docs/openapi.json",
+    redoc_url="/v1/swap_docs/redoc",
     swagger_ui_oauth2_redirect_url="/api/token",
 )
 
@@ -68,12 +45,6 @@ def swap(req: SwapRequest, res: Response) -> QueuedResponse | ErrorResponse:
     model_img_path = url_to_path(model_img_url)
     task = swap_image_task.delay(user_img_path, model_img_path)
     return QueuedResponse(task_id=task.id)
-
-
-class TaskQueueStatusResponse(BaseModel):
-    task_id: str
-    task_status: str
-    task_result: str
 
 
 @rest_api_app.get("/v1/swap/{task_id}")

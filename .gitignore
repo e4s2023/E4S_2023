@@ -4,3 +4,5 @@
 pretrained
 outputs/
 __pycache__
+build
+data

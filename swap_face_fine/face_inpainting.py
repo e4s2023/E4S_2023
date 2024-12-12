@@ -11,14 +11,14 @@ from e4s2024 import PRETRAINED_ROOT
 
 from .gcfsr_arch import FaceInpaintingArch
 
+if not os.environ.get("SKIP_RUN", False):
+    model_path = os.path.join(PRETRAINED_ROOT, 'inpainting', 'net_g_50000.pth')
+    model = FaceInpaintingArch(out_size=256)
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-model_path = os.path.join(PRETRAINED_ROOT, 'inpainting', 'net_g_50000.pth')
-model = FaceInpaintingArch(out_size=256)
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
-model.load_state_dict(torch.load(model_path)['params_ema'], strict=True)
-model.eval()
-model = model.to(device)
+    model.load_state_dict(torch.load(model_path)['params_ema'], strict=True)
+    model.eval()
+    model = model.to(device)
 
 def inpainting(face_img, mask):
     img = face_img.resize((256, 256))
