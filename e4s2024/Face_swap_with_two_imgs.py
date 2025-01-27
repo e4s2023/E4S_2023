@@ -1,17 +1,13 @@
 import copy
 import cv2
-import matplotlib.pyplot as plt
-from datasets.dataset import CelebAHQDataset, get_transforms
 from PIL import Image
-import os.path as osp
 import torch
-from argparse import Namespace
 import numpy as np
-from utils.torch_utils import saveTensorToFile, readImgAsTensor
+
+from e4s2024 import PRETRAINED_ROOT, SHARE_MODELS_ROOT
 from models.networks import Net3
-from options.train_options import TrainOptions
 import torchvision.transforms as transforms
-from datasets.dataset import CelebAHQDataset, get_transforms, TO_TENSOR, NORMALIZE, MASK_CONVERT_TF, FFHQDataset, FFHQ_MASK_CONVERT_TF, MASK_CONVERT_TF_DETAILED, __celebAHQ_masks_to_faceParser_mask_detailed
+from datasets.dataset import TO_TENSOR, NORMALIZE
 from utils import torch_utils
 import os
 import importlib
@@ -19,19 +15,10 @@ from tqdm import tqdm
 from torch.nn import functional as F
 import glob
 import random
-import torch.nn as nn
 from headpose.detect import PoseEstimator
 import math
 
-import imageio
-from torch.utils.data import Dataset
 from skimage.transform import resize
-from skimage import img_as_ubyte
-from criteria.id_loss import IDLoss
-from criteria.face_parsing.face_parsing_loss import FaceParsingLoss
-from criteria.lpips.lpips import LPIPS
-from collections import defaultdict
-from tqdm import trange
 from options.our_swap_face_pipeline_options import OurSwapFacePipelineOptions
 from swap_face_fine.color_transfer import skin_color_transfer
 from swap_face_fine.multi_band_blending import blending
@@ -39,19 +26,15 @@ from swap_face_fine.face_inpainting import inpainting
 from utils.paste_back_tricks import Trick, SoftErosion
 # from utils.swap_face_mask import swap_head_mask_revisit_considerGlass
 
-from swap_face_fine.face_parsing.face_parsing_demo import init_faceParsing_pretrained_model, faceParsing_demo, vis_parsing_maps
+from swap_face_fine.face_parsing.face_parsing_demo import init_faceParsing_pretrained_model, faceParsing_demo
 
-from swap_face_fine.swap_face_mask import swap_head_mask_revisit, swap_head_mask_target_bg_dilation
 from swap_face_fine.swap_face_mask import swap_head_mask_hole_first
 
 from utils.alignment import crop_faces, calc_alignment_coefficients
-from utils.morphology import dilation, erosion, opening
-from utils.util import save, get_5_from_98, get_detector, get_lmk
-from swap_face_fine.MISF.inpainting import inpainting_face
+from utils.morphology import dilation, erosion
 from swap_face_fine.deformation_demo import image_deformation
 
 # from PIPNet.lib.tools import get_lmk_model, demo_image
-from alignment import norm_crop, norm_crop_with_M
 from swap_face_fine.Blender.inference import BlenderInfer
 
 
@@ -100,7 +83,7 @@ def crop_and_align_face(target_files):
 class FaceSwap(object):
     def __init__(self):
         # face parsing model
-        faceParsing_ckpt = "./pretrained/faceseg/79999_iter.pth"
+        faceParsing_ckpt = os.path.join(PRETRAINED_ROOT, "faceseg", "79999_iter.pth")
         self.faceParsing_model = init_faceParsing_pretrained_model(faceParsing_ckpt)
 
         opts = OurSwapFacePipelineOptions().parse()
@@ -114,7 +97,7 @@ class FaceSwap(object):
         self.opts = opts
         self.net = net
 
-        self.pose_est = PoseEstimator(weights='./pretrained/pose/model_weights.zip')
+        self.pose_est = PoseEstimator(weights=os.path.join(PRETRAINED_ROOT, 'pose', 'model_weights.zip'))
 
         self.GPEN_model = None
         self.face_enhancer = None
@@ -612,7 +595,7 @@ class FaceSwap(object):
             driven = face_restoration([driven])
             res = Image.fromarray(driven[0])
         elif mode == 'gpen':
-            from swap_face_fine.gpen.gpen_demo import init_gpen_pretrained_model, GPEN_demo
+            from swap_face_fine.gpen.gpen_demo import GPEN_demo
 
             self.GPEN_model = get_default(self.GPEN_model,
                                           "swap_face_fine.gpen.gpen_demo.init_gpen_pretrained_model")
@@ -620,18 +603,15 @@ class FaceSwap(object):
             driven = GPEN_demo(driven[:, :, ::-1], self.GPEN_model, aligned=False)
             res = Image.fromarray(driven[:,:,::-1])
         elif mode == 'codeformer':
-            from swap_face_fine.inference_codeformer import CodeFormerInfer
             self.face_enhancer_cf = get_default(self.face_enhancer_cf,
                                                 "swap_face_fine.inference_codeformer.CodeFormerInfer")
             res = self.face_enhancer_cf.infer_image(face_img)
         elif mode == "SwinIR":
-            from swap_face_fine.SwinIR.image_infer import SwinIRInfer
             self.face_enhancer = get_default(self.face_enhancer,
                                              "swap_face_fine.SwinIR.image_infer.SwinIRInfer",
                                              device=self.opts.device)
             res = self.face_enhancer.infer(face_img)
         elif mode == "realesr":
-            from swap_face_fine.realesr.image_infer import RealESRBatchInfer
             self.face_enhancer_esr = get_default(
                 self.face_enhancer_esr,
                 "swap_face_fine.realesr.image_infer.RealESRBatchInfer",
@@ -706,7 +686,7 @@ class FaceSwap(object):
                 from swap_face_fine.TPSMM.demo import drive_source_demo
 
                 cfg_path = "/apdcephfs_cq2/share_1290939/branchwang/projects/Thin-Plate-Spline-Motion-Model/config/vox-256.yaml"
-                ckpt_path = "/apdcephfs_cq2/share_1290939/branchwang/pretrained_models/Thin-Plate-Spline-Motion-Model/checkpoints/vox.pth.tar"
+                ckpt_path = "{}/Thin-Plate-Spline-Motion-Model/checkpoints/vox.pth.tar".format(SHARE_MODELS_ROOT)
 
                 driven = drive_source_demo(S_256, T_256, cfg_path=cfg_path, ckpt_path=ckpt_path)
                 driven = (driven * 255).astype(np.uint8)
@@ -722,8 +702,8 @@ class FaceSwap(object):
             elif pose_drive == 'faceVid2Vid':
                 from swap_face_fine.face_vid2vid.drive_demo import init_facevid2vid_pretrained_model, drive_source_demo
 
-                face_vid2vid_cfg = "./pretrained/faceVid2Vid/vox-256.yaml"
-                face_vid2vid_ckpt = "./pretrained/faceVid2Vid/00000189-checkpoint.pth.tar"
+                face_vid2vid_cfg = os.path.join(PRETRAINED_ROOT, "faceVid2Vid", "vox-256.yaml")
+                face_vid2vid_ckpt = os.path.join(PRETRAINED_ROOT, "zhian", "00000189-checkpoint.pth.tar")
 
                 if self.vid2_generator is None or self.vid2_kp_detector is None\
                         or self.vid2_he_estimator is None or self.vid2_estimate_jacobian is None:
@@ -971,11 +951,11 @@ if __name__ == '__main__':
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
 
-    img_root = '../datasets/CelebAMask-HQ/CelebA-HQ-img'
-    img_paths = glob.glob(img_root + '/*.jpg')
+    img_root = os.path.join('../..', 'datasets', 'CelebAMask-HQ', 'CelebA-HQ-img')
+    img_paths = glob.glob(img_root + '{}*.jpg'.format(os.path.sep))
     print(f'{img_root} total files:', len(img_paths))
 
-    save_root = "./outputs/"
+    save_root = ".{sep}outputs{sep}".format(sep=os.path.sep)
     os.system(f'rm -r {save_root}')
 
     pose_drive = 'faceVid2Vid'

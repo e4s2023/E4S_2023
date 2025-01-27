@@ -1,9 +1,11 @@
 import argparse
+import os
 
 import torch
 import numpy as np
 from PIL import Image
 
+from e4s2024 import PRETRAINED_ROOT
 from swap_face_fine.SwinIR.main_test_swinir import test, define_model
 
 
@@ -29,7 +31,7 @@ def get_args():
 
     """ additional settings """
     args.task = "real_sr"
-    args.model_path = "./pretrained/SwinIR/003_realSR_BSRGAN_DFO_s64w8_SwinIR-M_x4_GAN.pth"
+    args.model_path = os.path.join(PRETRAINED_ROOT, "SwinIR","003_realSR_BSRGAN_DFO_s64w8_SwinIR-M_x4_GAN.pth")
     args.scale = 4
 
     return args

@@ -1,4 +1,7 @@
 import matplotlib
+
+from e4s2024 import SHARE_MODELS_ROOT
+
 matplotlib.use('Agg')
 import sys
 import yaml
@@ -141,7 +144,7 @@ def drive_source_demo(source_img, target_img, cfg_path, ckpt_path):
 if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("--config", required=True, help="path to config")
-    parser.add_argument("--checkpoint", default='/apdcephfs_cq2/share_1290939/branchwang/pretrained_models/Thin-Plate-Spline-Motion-Model/checkpoints/vox.pth.tar', help="path to checkpoint to restore")
+    parser.add_argument("--checkpoint", default='{}/Thin-Plate-Spline-Motion-Model/checkpoints/vox.pth.tar'.format(SHARE_MODELS_ROOT), help="path to checkpoint to restore")
 
     parser.add_argument("--source_image", default='/apdcephfs_cq2/share_1290939/branchwang/data/e4s_vis/liudehua_to_huge_copy_face/S_cropped.png', help="path to source image")
     parser.add_argument("--target_image", default='/apdcephfs_cq2/share_1290939/branchwang/data/e4s_vis/liudehua_to_huge_copy_face/T_cropped.png', help="path to target image")

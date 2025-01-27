@@ -27,8 +27,8 @@ from utils.morphology import dilation
 
 from swap_face_fine.face_parsing.face_parsing_demo import init_faceParsing_pretrained_model, faceParsing_demo, vis_parsing_maps
 
-sys.path.append(".")
 sys.path.append("..")
+sys.path.append("../..")
 
 toPIL = transforms.ToPILImage()
 

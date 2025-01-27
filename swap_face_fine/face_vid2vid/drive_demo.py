@@ -8,6 +8,8 @@ from skimage.transform import resize
 from skimage import img_as_ubyte
 import torch
 import torch.nn.functional as F
+
+from e4s2024 import SHARE_PY_ROOT, DATASETS_ROOT
 from swap_face_fine.face_vid2vid.sync_batchnorm import DataParallelWithCallback
 
 from swap_face_fine.face_vid2vid.modules.generator import OcclusionAwareGenerator, OcclusionAwareSPADEGenerator
@@ -250,18 +252,18 @@ def drive_source_demo(
 
 if __name__ == "__main__":
     
-    generator, kp_detector, he_estimator, estimate_jacobian = init_pretrained_model("/apdcephfs/share_1290939/zhianliu/py_projects/One-Shot_Free-View_Neural_Talking_Head_Synthesis/config/vox-256.yaml",
-                                                                                    "/apdcephfs/share_1290939/zhianliu/py_projects/One-Shot_Free-View_Neural_Talking_Head_Synthesis/ckpts/00000189-checkpoint.pth.tar")
+    generator, kp_detector, he_estimator, estimate_jacobian = init_pretrained_model("{}/One-Shot_Free-View_Neural_Talking_Head_Synthesis/config/vox-256.yaml".format(SHARE_PY_ROOT),
+                                                                                    "{}/One-Shot_Free-View_Neural_Talking_Head_Synthesis/ckpts/00000189-checkpoint.pth.tar".format(SHARE_PY_ROOT))
     
-    base_dir = "/apdcephfs/share_1290939/zhianliu/datasets/our_swapping_dataset/driven_images_256/epoch_00190_iteration_000400000"    
+    base_dir = "{}/our_swapping_dataset/driven_images_256/epoch_00190_iteration_000400000".format(DATASETS_ROOT)
     source_img_names = ["28139","28260","28398" , "28494" , "28556" , "28618",  "28622" , "28688"  ,"28831",  "28837" , "28965", "29357","29376","29441","29575","29581","29927","29980"]
     for source_name in source_img_names:
-        source_image = imageio.imread(os.path.join("/apdcephfs/share_1290939/zhianliu/datasets/CelebA-HQ/test/images","%s.jpg"%source_name))
+        source_image = imageio.imread(os.path.join("{}/CelebA-HQ/test/images","%s.jpg".format(DATASETS_ROOT)%source_name))
         
         target_names = sorted(glob(os.path.join(base_dir, source_name, "%s_to_*.png"%source_name)))
         target_names =  [name[-9:-4] for name in target_names]
 
-        driving_images = [imageio.imread(os.path.join("/apdcephfs/share_1290939/zhianliu/datasets/CelebA-HQ/test/images","%s.jpg"%target_name)) for target_name in target_names]
+        driving_images = [imageio.imread(os.path.join("{}/CelebA-HQ/test/images".format(DATASETS_ROOT),"%s.jpg"%target_name)) for target_name in target_names]
             
         source_image = resize(source_image, (256, 256))[..., :3]
         driving_images = [resize(frame, (256, 256))[..., :3] for frame in driving_images]

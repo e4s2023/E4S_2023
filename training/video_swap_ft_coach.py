@@ -10,23 +10,17 @@ from tqdm import tqdm, trange
 # 自己加的
 from PIL import Image
 import glob
-from datasets.dataset import  TO_TENSOR, NORMALIZE, MASK_CONVERT_TF, FFHQDataset, FFHQ_MASK_CONVERT_TF, MASK_CONVERT_TF_DETAILED, FFHQ_MASK_CONVERT_TF_DETAILED
+from datasets.dataset import TO_TENSOR, NORMALIZE
 from datasets.video_swap_dataset import VideoFaceSwappingDataset
 from criteria.id_loss import IDLoss
 from criteria.face_parsing.face_parsing_loss import FaceParsingLoss
 from criteria.lpips.lpips import LPIPS
-from criteria.style_loss import StyleLoss
 from models.networks import Net3
 from training.ranger import Ranger
 import torch.nn.functional as F
-from torch.utils.data import DataLoader
 from torch import nn
 from utils import torch_utils
-import math
-from collections import OrderedDict
 from tensorboardX import SummaryWriter
-import copy
-from utils.morphology import dilation
 from swap_face_fine.face_parsing.face_parsing_demo import  vis_parsing_maps
 
 

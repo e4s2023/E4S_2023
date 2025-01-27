@@ -3,6 +3,8 @@ import cv2
 from PIL import Image
 import torch
 import numpy as np
+
+from e4s2024 import PRETRAINED_ROOT, SHARE_PY_ROOT
 from models.networks import Net3
 import torchvision.transforms as transforms
 from datasets.dataset import get_transforms, TO_TENSOR, NORMALIZE
@@ -223,12 +225,12 @@ def video_editing(source, target, opts, both_crop = False, only_target_crop=Fals
     
     # ================= 加载模型相关 ========================= 
     # face_vid2vid 模型
-    face_vid2vid_cfg = "/apdcephfs/share_1290939/zhianliu/py_projects/One-Shot_Free-View_Neural_Talking_Head_Synthesis/config/vox-256.yaml"
-    face_vid2vid_ckpt = "/apdcephfs/share_1290939/zhianliu/py_projects/One-Shot_Free-View_Neural_Talking_Head_Synthesis/ckpts/00000189-checkpoint.pth.tar"
+    face_vid2vid_cfg = "{}/One-Shot_Free-View_Neural_Talking_Head_Synthesis/config/vox-256.yaml".format(SHARE_PY_ROOT)
+    face_vid2vid_ckpt = "{}/One-Shot_Free-View_Neural_Talking_Head_Synthesis/ckpts/00000189-checkpoint.pth.tar".format(SHARE_PY_ROOT)
     generator, kp_detector, he_estimator, estimate_jacobian = init_facevid2vid_pretrained_model(face_vid2vid_cfg, face_vid2vid_ckpt)
     
     # face parsing 模型
-    faceParsing_ckpt = "./pretrained/faceseg/79999_iter.pth"
+    faceParsing_ckpt = os.path.join(PRETRAINED_ROOT,"faceseg", "79999_iter.pth")
     faceParsing_model = init_faceParsing_pretrained_model(faceParsing_ckpt)
 
     # 定义 我们的模型 G 和相关的 Loss func

@@ -8,7 +8,10 @@ from torch import nn
 from torch.nn import functional as F
 from torch.autograd import Function
 
-from models.stylegan2.op import FusedLeakyReLU, fused_leaky_relu, upfirdn2d, conv2d_gradfix
+#from mmcv.ops import upfirdn2d
+
+from models.stylegan2.op import FusedLeakyReLU, fused_leaky_relu, conv2d_gradfix
+
 import gc
 # from torchvision.transforms.functional import gaussian_blur 
 

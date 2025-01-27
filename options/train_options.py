@@ -1,5 +1,7 @@
 from argparse import ArgumentParser
 
+from e4s2024 import DATASETS_ROOT, PRETRAINED_SHARE_ROOT
+
 
 class TrainOptions:
 
@@ -17,8 +19,8 @@ class TrainOptions:
 		self.parser.add_argument('--remaining_layer_idx', type=int, default=13, help='剩余的几层不用mask')
   
         # ================= 数据集 相关 =====================
-		self.parser.add_argument('--celeba_dataset_root', default='/apdcephfs/share_1290939/zhianliu/datasets/CelebA-HQ', type=str, help='CelebA-HQ-Mask dataset root path')
-		self.parser.add_argument('--ffhq_dataset_root', default='/apdcephfs/share_1290939/zhianliu/datasets/ffhq-dataset/FFHQ', type=str, help='FFHQ dataset root path')
+		self.parser.add_argument('--celeba_dataset_root', default='{}/CelebA-HQ'.format(DATASETS_ROOT), type=str, help='CelebA-HQ-Mask dataset root path')
+		self.parser.add_argument('--ffhq_dataset_root', default='{}/ffhq-dataset/FFHQ'.format(DATASETS_ROOT), type=str, help='FFHQ dataset root path')
 		self.parser.add_argument('--dataset_name', default='celeba', type=str, help='which dataset to use')
 		self.parser.add_argument('--flip_p', default=0.5, type=float, help='probalility to apply horizontal flipping')
 		self.parser.add_argument('--ds_frac', default=1.0, type=float, help='dataset fraction')
@@ -62,7 +64,7 @@ class TrainOptions:
 		self.parser.add_argument('--style_loss_norm', default=1, type=int, help='whether to normalize the [-1, 1] image to ImageNet in style loss')
   
         # ================== styleGAN2 相关 ==================
-		self.parser.add_argument('--stylegan_weights', default='/apdcephfs/share_1290939/zhianliu/pretrained_models/pixel2style2pixel/stylegan2-ffhq-config-f.pt', type=str, help='Path to StyleGAN model weights')
+		self.parser.add_argument('--stylegan_weights', default='{}/pixel2style2pixel/stylegan2-ffhq-config-f.pt'.format(PRETRAINED_SHARE_ROOT), type=str, help='Path to StyleGAN model weights')
         # 是否在W空间进行学习
 		self.parser.add_argument('--learn_in_w', action='store_true', help='Whether to learn in w space instead of w+')
         # 是否从styleGAN的均值开始学习
@@ -72,8 +74,8 @@ class TrainOptions:
 		self.parser.add_argument('--n_styles', default=18, type=int, help='StyleGAN层数')
   
         # ir_se50 预训练权重, for id_loss
-		self.parser.add_argument('--ir_se50_path', default='/apdcephfs/share_1290939/zhianliu/pretrained_models/pixel2style2pixel/model_ir_se50.pth', type=str, help='Path to ir_se50 model weights')
-		self.parser.add_argument('--face_parsing_model_path', default='/apdcephfs/share_1290939/zhianliu/pretrained_models/CelebA-Mask-HQ-faceParser/model.pth', type=str, help='Path to face parsing model weights')
+		self.parser.add_argument('--ir_se50_path', default='{}/pixel2style2pixel/model_ir_se50.pth'.format(PRETRAINED_SHARE_ROOT), type=str, help='Path to ir_se50 model weights')
+		self.parser.add_argument('--face_parsing_model_path', default='{}/CelebA-Mask-HQ-faceParser/model.pth'.format(PRETRAINED_SHARE_ROOT), type=str, help='Path to face parsing model weights')
 		self.parser.add_argument('--checkpoint_path', default=None, type=str, help='Path to model checkpoint')
 		self.parser.add_argument('--stage1_checkpoint_path', default=None, type=str, help='Path to model checkpoint')
 		# self.parser.add_argument('--stage1_checkpoint_path', default="/apdcephfs/share_1290939/zhianliu/py_projects/pytorch-DDP-demo/work_dirs/exp_recon_id0.1_advG0.01_StyleGANWithMask_woNorm_fituneGD_noR1_lr1e4_dEvery15_Adam_EMA_fullData/checkpoints/iteration_100000.pt", type=str, help='Path to model checkpoint')

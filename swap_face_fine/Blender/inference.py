@@ -1,8 +1,10 @@
+import os
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from e4s2024 import PRETRAINED_ROOT
 from swap_face_fine.Blender.model_center.blener import Blender
 from torchvision import transforms
 import numpy as np
@@ -43,7 +45,7 @@ def blending_two_faces(img_a, img_t, mask_a, mask_t):
 
     netG = nn.DataParallel(Blender(args)).cuda()
 
-    load_path = './pretrained/face_blender/latest_netG.pth'
+    load_path = os.path.join(PRETRAINED_ROOT, 'face_blender', 'latest_netG.pth')
 
     netG_params = torch.load(load_path)
     netG.module.load_state_dict(netG_params)
@@ -84,7 +86,7 @@ class BlenderInfer(object):
 
         netG = Blender(args).cuda()
 
-        load_path = './pretrained/face_blender/latest_netG.pth'
+        load_path = os.path.join(PRETRAINED_ROOT, 'face_blender', 'latest_netG.pth')
 
         netG_params = torch.load(load_path)
         netG.load_state_dict(netG_params)
@@ -132,7 +134,7 @@ class BlenderForTrain(nn.Module):
         parser = add_hyper(parser)
         args = parser.parse_args()
 
-        load_path = './pretrained/face_blender/latest_netG.pth'
+        load_path = os.path.join(PRETRAINED_ROOT, 'face_blender', 'latest_netG.pth')
         netG = Blender(args).cuda()
         netG_params = torch.load(load_path)
         netG.load_state_dict(netG_params)

@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- encoding: utf-8 -*-
-
+import os
 
 import torch
 import torch.nn as nn
@@ -12,9 +12,10 @@ from swap_face_fine.face_parsing.resnet import Resnet18
 # from modules.bn import InPlaceABNSync as BatchNorm2d
 
 
-seg_mean = torch.from_numpy(np.array([[0.485, 0.456, 0.406]])).float().cuda().reshape(1,3,1,1)
-seg_std = torch.from_numpy(np.array([[0.229, 0.224, 0.225]])).float().cuda().reshape(1,3,1,1)
-seg_criterion = nn.CrossEntropyLoss()
+if not os.environ.get("SKIP_RUN", False):
+    seg_mean = torch.from_numpy(np.array([[0.485, 0.456, 0.406]])).float().cuda().reshape(1,3,1,1)
+    seg_std = torch.from_numpy(np.array([[0.229, 0.224, 0.225]])).float().cuda().reshape(1,3,1,1)
+    seg_criterion = nn.CrossEntropyLoss()
 
 
 class ConvBNReLU(nn.Module):

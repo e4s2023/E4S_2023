@@ -3,14 +3,11 @@ from PIL import Image
 import numpy as np
 import os
 from tqdm import tqdm
-from torch.nn import functional as F
-import glob
 import imageio
 from skimage.transform import resize
-from skimage import img_as_ubyte
-from scipy.ndimage.filters import gaussian_filter
 from skimage.filters import gaussian
 
+from e4s2024 import TMP_ROOT, SHARE_PY_ROOT, DATASETS_ROOT
 from utils.alignment import crop_faces, calc_alignment_coefficients
 
 
@@ -70,7 +67,7 @@ def get_target_video(video_path, num_max_frames=50):
     return frames, fps
 
 def crop_video_follow_STIT(): # 用stich in time的方法提取视频中的人脸区域
-    frames, fps = get_target_video("/apdcephfs/share_1290939/zhianliu/py_projects/our_editing_swappingFace_video/02_1.mp4", num_max_frames = 200)
+    frames, fps = get_target_video("{}/our_editing_swappingFace_video/02_1.mp4".format(SHARE_PY_ROOT), num_max_frames = 200)
     # files = sorted(glob.glob("/apdcephfs_cq2/share_1290939/branchwang/projects/E4S/swap_face_video_res/result_hires/target_frames/*.jpg"))
     # files = sorted(glob.glob("/apdcephfs/share_1290939/zhianliu/datasets/video_swapping_demo/274/*.png"))[149:149+200]
     # files = sorted(glob.glob("/apdcephfs/share_1290939/zhianliu/datasets/video_swapping_demo/874/*.png"))[:200]
@@ -137,13 +134,13 @@ def crop_imgs(files):
     print('Aligning images')
     crops, orig_images, quads = crop_faces(image_size, files, scale, center_sigma=center_sigma, xy_sigma=xy_sigma, use_fa=use_fa)
     for i in range(len(crops)):
-        crops[i].save("./tmp/%d.png"%i)
+        crops[i].save(os.path.join(TMP_ROOT, "%d.png"%i))
     print('Aligning completed')
     
 
 def anti_aliasing_test():  # 下采样抗锯齿测试
 
-    src_img_dir = "/apdcephfs/share_1290939/zhianliu/datasets/CelebA-HQ/test/images"
+    src_img_dir = "{}/CelebA-HQ/test/images".format(DATASETS_ROOT)
     idx = [1989,61]
     img_names = ["%05d.jpg"%(i+28000) for i in idx]
     source_names = [os.path.join(src_img_dir, name) for name in img_names]

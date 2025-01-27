@@ -1,7 +1,12 @@
+import os
 
 import numpy as np
 import cv2
 from PIL import Image
+
+from e4s2024 import TDDFA_ROOT
+
+
 # from TDDFA_V2.FaceBoxes import FaceBoxes
 # from TDDFA_V2.TDDFA import TDDFA
 
@@ -42,8 +47,8 @@ def get_landmark_once(img, gpu_mode=False):
     tddfa = TDDFA(
         gpu_mode=gpu_mode,
         arch="resnet",
-        checkpoint_fp="./TDDFA_V2/weights/resnet22.pth",
-        bfm_fp="TDDFA_V2/configs/bfm_noneck_v3.pkl",
+        checkpoint_fp=os.path.join(".", "TDDFA_V2", "weights", "resnet22.pth"),
+        bfm_fp=os.path.join("TDDFA_V2", "configs", "bfm_noneck_v3.pkl"),
         size=120,
         num_params=62,
     )
@@ -68,8 +73,8 @@ def get_detector(gpu_mode=False):
     tddfa = TDDFA(
         gpu_mode=gpu_mode,
         arch="resnet",
-        checkpoint_fp="./TDDFA_V2/weights/resnet22.pth",
-        bfm_fp="TDDFA_V2/configs/bfm_noneck_v3.pkl",
+        checkpoint_fp=os.path.join(TDDFA_ROOT, "weights", "resnet22.pth"),
+        bfm_fp=os.path.join(TDDFA_ROOT, "configs", "bfm_noneck_v3.pkl"),
         size=120,
         num_params=62,
     )

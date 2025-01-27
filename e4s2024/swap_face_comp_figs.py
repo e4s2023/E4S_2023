@@ -1,57 +1,31 @@
 import copy
 import cv2
-import matplotlib.pyplot as plt
-from datasets.dataset import CelebAHQDataset, get_transforms
 from PIL import Image
-import os.path as osp
 import torch
-from argparse import Namespace
 import numpy as np
-from utils.torch_utils import saveTensorToFile, readImgAsTensor
-from models.networks import Net3
-from options.train_options import TrainOptions
 import torchvision.transforms as transforms
-from datasets.dataset import CelebAHQDataset, get_transforms, TO_TENSOR, NORMALIZE, MASK_CONVERT_TF, FFHQDataset, FFHQ_MASK_CONVERT_TF, MASK_CONVERT_TF_DETAILED, __celebAHQ_masks_to_faceParser_mask_detailed
+from datasets.dataset import TO_TENSOR, NORMALIZE
+from e4s2024 import PRETRAINED_ROOT, SHARE_PY_ROOT, SHARE_MODELS_ROOT, DATASETS_ROOT
 from utils import torch_utils
 import os
-from tqdm import tqdm
 from torch.nn import functional as F
-import glob
-import random
-import torch.nn as nn
-from headpose.detect import PoseEstimator
-import math
 
-import imageio
-from torch.utils.data import Dataset
 from skimage.transform import resize
-from skimage import img_as_ubyte
-from criteria.id_loss import IDLoss
-from criteria.face_parsing.face_parsing_loss import FaceParsingLoss
-from criteria.lpips.lpips import LPIPS
-from collections import defaultdict
-from tqdm import trange
-from options.our_swap_face_pipeline_options import OurSwapFacePipelineOptions
-from swap_face_fine.color_transfer import skin_color_transfer
 from swap_face_fine.multi_band_blending import blending
 
-from swap_face_fine.face_parsing.face_parsing_demo import init_faceParsing_pretrained_model, faceParsing_demo, vis_parsing_maps
+from swap_face_fine.face_parsing.face_parsing_demo import init_faceParsing_pretrained_model, faceParsing_demo
 
-from swap_face_fine.swap_face_mask import swap_head_mask_revisit, swap_head_mask_revisit_considerGlass, swap_head_mask_hole_first, swap_head_mask_target_bg_dilation
+from swap_face_fine.swap_face_mask import swap_head_mask_hole_first
 
 from utils.alignment import crop_faces, calc_alignment_coefficients
-from utils.morphology import dilation, erosion, opening
-from utils.util import save, get_5_from_98, get_detector, get_lmk
-from swap_face_fine.MISF.inpainting import inpainting_face
-from swap_face_fine.deformation_demo import image_deformation, image_deformation_local_warp
+from utils.morphology import dilation, erosion
 
 # from PIPNet.lib.tools import get_lmk_model, demo_image
-from alignment import norm_crop, norm_crop_with_M
 
 
 # ================= 加载模型相关 =========================
 # face parsing 模型
-faceParsing_ckpt = "/apdcephfs_cq2/share_1290939/branchwang/pretrained_models/face-parsing.PyTorch/79999_iter.pth"
+faceParsing_ckpt = os.path.join(PRETRAINED_ROOT, "faceseg", "79999_iter.pth")
 faceParsing_model = init_faceParsing_pretrained_model(faceParsing_ckpt)
 
 def create_masks(mask, operation='dilation', radius=0):
@@ -213,19 +187,19 @@ def faceSwapping_pipeline(source,
                             need_crop =True, 
                             verbose=True, 
                             only_target_crop=False, 
-                            only_source_crop=False,
                             optimize_W=True,
                             finetune_net=False,
                             copy_face=True,
                             pose_drive='faceVid2Vid',
-                            face_enhancement='gfpgan',
-                            name=None
+                            face_enhancement='gpen'
                             ):
-    
+
     if not os.path.exists(save_dir) and verbose:
         os.makedirs(save_dir)
 
-    source_and_target_files = [('source', source), ('target', target)]
+    source_and_target_files = [source, target]
+    source_and_target_files = [(os.path.basename(f).split('.')[0], f) for f in source_and_target_files]
+    result_name = "swap_%s_to_%s.png"%(source_and_target_files[0][0], source_and_target_files[1][0])
 
     # (1) 将 target image 和 source image 分别 crop, 并对齐, 得到 S 和T
     if only_target_crop:
@@ -237,11 +211,6 @@ def faceSwapping_pipeline(source,
         crops, orig_images, quads, inv_transforms = crop_and_align_face(source_and_target_files)
         crops = [crop.convert("RGB") for crop in crops]
         S, T = crops
-    elif only_source_crop:
-        crops, orig_images, quads, inv_transforms = crop_and_align_face(source_and_target_files[:1])
-        crops = [crop.convert("RGB") for crop in crops]
-        S = crops[0]
-        T = Image.open(target).convert("RGB").resize((1024, 1024))
     else:
         S = Image.open(source).convert("RGB").resize((1024, 1024))
         T = Image.open(target).convert("RGB").resize((1024, 1024))
@@ -249,6 +218,7 @@ def faceSwapping_pipeline(source,
 
     S_256, T_256 = [resize(np.array(im)/255.0, (256, 256)) for im in [S, T]]  # 256,[0,1]范围
     T_mask = faceParsing_demo(faceParsing_model, T, convert_to_seg12=True) if target_mask is None else target_mask
+
     if verbose:
         Image.fromarray(T_mask).save(os.path.join(save_dir,"T_mask.png"))
         # T_mask_vis = vis_parsing_maps(T, T_mask)
@@ -258,8 +228,8 @@ def faceSwapping_pipeline(source,
     
 
     # ========================================= pose alignment ===============================================
-    '''
-    est = PoseEstimator(weights='/apdcephfs_cq2/share_1290939/branchwang/pretrained_models/headpose/model_weights.zip')
+    """
+    est = PoseEstimator(weights='{}/headpose/model_weights.zip'.format(SHARE_MODELS_ROOT))
     need_drive = False
     try:
         pose_s = est.pose_from_image(image=np.array(S))
@@ -270,14 +240,15 @@ def faceSwapping_pipeline(source,
             need_drive = True
     except:
         need_drive = True
-    '''
-    need_drive = True
+    """
+
+    need_drive = False
     if need_drive:
         if pose_drive == 'TPSMM':
             from swap_face_fine.TPSMM.demo import drive_source_demo
 
             cfg_path = "/apdcephfs_cq2/share_1290939/branchwang/projects/Thin-Plate-Spline-Motion-Model/config/vox-256.yaml"
-            ckpt_path = "/apdcephfs_cq2/share_1290939/branchwang/pretrained_models/Thin-Plate-Spline-Motion-Model/checkpoints/vox.pth.tar"
+            ckpt_path = "{}/Thin-Plate-Spline-Motion-Model/checkpoints/vox.pth.tar".format(SHARE_MODELS_ROOT)
 
             driven = drive_source_demo(S_256, T_256, cfg_path=cfg_path, ckpt_path=ckpt_path)
             driven = (driven * 255).astype(np.uint8)
@@ -343,33 +314,31 @@ def faceSwapping_pipeline(source,
 
         driven = GPEN_demo(driven[:, :, ::-1], GPEN_model, aligned=False)
         D = Image.fromarray(driven[:,:,::-1])
-        
-        del GPEN_model
     else:
         raise ValueError(f'Wrong face enhancement mode {face_enhancement}.')
 
+
+    """
     # =========================== Warp the target face shape to the source =======================================
-    '''
     inv_trans_coeffs, orig_image = inv_transforms[1], orig_images[1]
     source_trans = D.transform(orig_image.size, Image.PERSPECTIVE, inv_trans_coeffs, Image.BILINEAR)
-    target_warped = image_deformation_local_warp(image=orig_image, image_ref=source_trans)
+    target_warped = image_deformation(image=orig_image, image_ref=source_trans)
     crops, orig_images, quads, inv_transforms = crop_and_align_face([(source_and_target_files[0][0], source_trans), (source_and_target_files[1][0], target_warped)])
     crops = [crop.convert("RGB") for crop in crops]
     _, T = crops
+
     T_mask = faceParsing_demo(faceParsing_model, T, convert_to_seg12=True)
-    # return target_warped
-    
     if verbose:
         Image.fromarray(T_mask).save(os.path.join(save_dir,"T_mask_deformed.png"))
         T.save(os.path.join(save_dir, "T_cropped_deformed.png"))
-    
-        D.save(os.path.join(save_dir,"D_%s_to_%s.png"%(source_and_target_files[0][0], source_and_target_files[1][0])))
-    '''
-    
+    """
+
     # (2) 3. 提取 driven D 的 mask
     D_mask = faceParsing_demo(faceParsing_model, D, convert_to_seg12=True)
+
     if verbose:
         Image.fromarray(D_mask).save(os.path.join(save_dir,"D_mask.png"))
+        D.save(os.path.join(save_dir,"D_%s_to_%s.png"%(source_and_target_files[0][0], source_and_target_files[1][0])))
         # D_mask_vis = vis_parsing_maps(D, D_mask)
         # Image.fromarray(D_mask_vis).save(os.path.join(save_dir,"D_mask_vis.png"))
         
@@ -382,9 +351,11 @@ def faceSwapping_pipeline(source,
     target_mask = (target_mask*255).long().to(opts.device).unsqueeze(0)
     target_onehot = torch_utils.labelMap2OneHot(target_mask, num_cls = opts.num_seg_cls)
 
+
     # ========================================= inner face area skin color transfer ==========================================
-    mask_face_driven = logical_or_reduce(*[driven_mask == item for item in [1, 2, 3, 5, 6, 9]]).float()
-    mask_face_target = logical_or_reduce(*[target_mask == item for item in [1, 2, 3, 5, 6, 9]]).float()
+    """
+    mask_face_driven = logical_or_reduce(*[driven_mask == item for item in [1, 2, 3, 5, 6, 9, 7, 8]]).float()
+    mask_face_target = logical_or_reduce(*[target_mask == item for item in [1, 2, 3, 5, 6, 9, 7, 8]]).float()
 
     # radius = 10
     # mask_face_swapped = dilation(mask_face_swapped, torch.ones(2 * radius + 1, 2 * radius + 1, device=mask_face_swapped.device), engine='convolution')
@@ -392,7 +363,7 @@ def faceSwapping_pipeline(source,
     mask_face_driven = F.interpolate(mask_face_driven, (1024, 1024), mode='bilinear', align_corners=False)
     mask_face_target = F.interpolate(mask_face_target, (1024, 1024), mode='bilinear', align_corners=False)
 
-    _, face_border, _ = create_masks(mask_face_driven, operation='expansion', radius=10)
+    _, face_border, _ = create_masks(mask_face_driven, operation='expansion', radius=5)
     face_border = face_border[0, 0, :, :, None].cpu().numpy()
     face_border = np.repeat(face_border, 3, axis=-1)
     
@@ -408,7 +379,7 @@ def faceSwapping_pipeline(source,
     # Others from DeepFaceLab: https://github.com/iperov/DeepFaceLab/blob/master/core/imagelib/color_transfer.py
     driven_face_inner = Image.fromarray(np.uint8(skin_color_transfer(np.array(driven_face_inner) / 255., 
                                             np.array(target_face_inner) / 255., 
-                                            ct_mode='mkl')))
+                                            ct_mode='sot')))
     
     # swapped_face_original = np.array(D)
     driven_face_image = D * (1 - mask_face_driven) + driven_face_inner * mask_face_driven
@@ -420,6 +391,7 @@ def faceSwapping_pipeline(source,
         driven_face_mask = logical_or_reduce(*[driven_mask == item for item in [1, 2, 3, 5, 6, 9]]).float()
         driven_face_mask_image = Image.fromarray((driven_face_mask[0, 0, :, :] * 255).cpu().numpy().astype(np.uint8))
         driven_face_mask_image.save(os.path.join(save_dir, 'driven_face_mask.png'))
+    """
 
     # wrap data 
     driven = transforms.Compose([TO_TENSOR, NORMALIZE])(D)
@@ -455,13 +427,6 @@ def faceSwapping_pipeline(source,
         with torch.no_grad():
             driven_style_vector, _ = net.get_style_vectors(driven, driven_onehot) 
             target_style_vector, _ = net.get_style_vectors(target, target_onehot)
-
-        '''
-        driven_style_vector = torch.load(os.path.join('/apdcephfs/share_1290939/zhianliu/py_projects/pytorch-DDP-demo/work_dirs/v_18_video_swapping/28494_to_874', "intermediate_results/styleVec/D_style_vec_" + name + '.pt'))
-        driven_style_vector = driven_style_vector.cuda()
-        target_style_vector = torch.load(os.path.join('/apdcephfs/share_1290939/zhianliu/py_projects/pytorch-DDP-demo/work_dirs/v_18_video_swapping/28494_to_874', "intermediate_results/styleVec/T_style_vec_" + name + '.pt'))
-        target_style_vector = target_style_vector.cuda()
-        '''
         
     if verbose:
         torch.save(driven_style_vector, os.path.join(save_dir,"D_style_vec.pt"))
@@ -475,27 +440,6 @@ def faceSwapping_pipeline(source,
         target_face, _ , structure_feats = net.gen_img(torch.zeros(1,512,32,32).to(opts.device), target_style_codes, target_onehot)                
         target_face_image = torch_utils.tensor2im(target_face[0])
         target_face_image.save(os.path.join(save_dir,"T_recon.png"))
-
-
-    if name:
-        save_dir = os.path.join(save_dir, "intermediate_results")
-        os.makedirs(save_dir, exist_ok = True)
-        os.makedirs(os.path.join(save_dir, "imgs"), exist_ok = True)
-        os.makedirs(os.path.join(save_dir, "mask"), exist_ok = True)
-        os.makedirs(os.path.join(save_dir, "styleVec"), exist_ok = True)  
-
-        S_mask = faceParsing_demo(faceParsing_model, S, convert_to_seg12=True)
-        Image.fromarray(S_mask).save(os.path.join(save_dir,"mask","S_mask.png"))
-        T.save(os.path.join(save_dir, 'imgs', 'T_' + name +'.png'))
-        Image.fromarray(T_mask).save(os.path.join(save_dir, "mask", 'T_mask_' + name + '.png'))
-        D.save(os.path.join(save_dir, "imgs", 'D_' + name + '.png'))
-        Image.fromarray(D_mask).save(os.path.join(save_dir, "mask", 'D_mask_' + name + '.png'))
-
-        torch.save(driven_style_vector, os.path.join(save_dir, "styleVec", "D_style_vec_" + name + '.pt'))
-        torch.save(target_style_vector, os.path.join(save_dir, "styleVec", "T_style_vec_" + name + '.pt'))
-
-        return None
-
 
     # (4) 交换 D 和 T 的脸部mask
     # swapped_msk, hole_map, eyebrows_line = swap_head_mask_revisit_considerGlass(D_mask, T_mask) # 换头, hole_map是待填补的区域
@@ -511,7 +455,7 @@ def faceSwapping_pipeline(source,
         # Image.fromarray(hole_map.astype(np.uint8)).save(os.path.join(save_dir, "hole_map.png"))
     
     # 保留 trgt_style_vectors 的background, hair, era_rings, eye_glass 其余的全用 driven_style_vectors
-    comp_indices = set(range(opts.num_seg_cls)) - {0, 10, 4, 8, 11  }  # 10 glass, 8 neck
+    comp_indices = set(range(opts.num_seg_cls)) - {0, 10, 4, 11  }  # 10 glass, 8 neck
     swapped_style_vectors =  swap_comp_style_vector(target_style_vector, driven_style_vector, list(comp_indices), belowFace_interpolation=False)
     if verbose:
         torch.save(swapped_style_vectors, os.path.join(save_dir,"swapped_style_vec.pt"))
@@ -574,59 +518,27 @@ def faceSwapping_pipeline(source,
             mouth_mask_image.save(os.path.join(save_dir, 'mouth_mask.png'))
             seam_mask_image.save(os.path.join(save_dir, 'mouth_seam_mask.png'))
 
+    # inpainting
+    """
+    swapped_face_256, mask_256 = [resize(np.array(im), (256, 256)) for im in [swapped_face_image, hole_mask]]
+    swapped_face_inpainting = inpainting_face(swapped_face_256 * 255, mask_256 * 255)
+    swapped_face_inpainting = np.uint8(swapped_face_inpainting)
+    swapped_face_up = GPEN_demo(swapped_face_inpainting[:,:,::-1], GPEN_model, aligned=False)
+    swapped_face_image = Image.fromarray(swapped_face_up[:,:,::-1])
 
-    # (6) 最后贴回去
-    # Gaussian blending with mask
-    # 处理一下mask， 得到face 区域和 dialation区域
-
-    '''
-    outer_dilation = 5  # 这个值可以调节
-    mask_bg = logical_or_reduce(*[swapped_msk == clz for clz in [0, 11, 7, 4, 8     ]])   # 4,8,7  # 如果是视频换脸，考虑把头发也弄进来当做背景的一部分, 11 earings 4 hair 8 neck 7 ear
-    is_foreground = torch.logical_not(mask_bg)
-    hole_index = hole_mask[None][None]
-    is_foreground[hole_index[None]] = True
-    foreground_mask = is_foreground.float()
-    
-    # Extending to the hair area
-    # radius = 20
-    # foreground_mask = dilation(foreground_mask, torch.ones(2 * radius + 1, 2 * radius + 1, device=foreground_mask.device), engine='convolution')
-    # upper_hair_mask = (swapped_msk == 4)
-    # upper_hair_mask[:, :, eye_line:, :] = False
-    # is_foreground = torch.logical_or(is_foreground, upper_hair_mask)
-    # is_foreground = torch.logical_or(is_foreground, swapped_msk == 8)
-    # foreground_mask = torch.logical_and(foreground_mask, is_foreground)
-    # foreground_mask = dilation(foreground_mask, torch.ones(2 * outer_dilation + 1, 2 * outer_dilation + 1, device=foreground_mask.device), engine='convolution')
-    content_mask, border_mask, full_mask = create_masks(foreground_mask, operation='expansion', radius=outer_dilation)
-
-
-    # past back
-    content_mask = F.interpolate(content_mask, (1024, 1024), mode='bilinear', align_corners=False)
-    content_mask = content_mask[0, 0, :, :, None].cpu().numpy()
-    border_mask = F.interpolate(border_mask, (1024, 1024), mode='bilinear', align_corners=False)
-    border_mask = border_mask[0, 0, :, :, None].cpu().numpy()
-    border_mask = np.repeat(border_mask, 3, axis=-1)
-
-    swapped_and_pasted = swapped_face_image * content_mask + T * (1 - content_mask)
-    # swapped_and_pasted = Image.fromarray(np.uint8(swapped_and_pasted))
-    swapped_and_pasted = Image.fromarray(blending(np.array(T), swapped_and_pasted, mask=border_mask))
+    swapped_msk = faceParsing_demo(faceParsing_model, swapped_face_image, convert_to_seg12=True)
+    swapped_msk = transforms.Compose([TO_TENSOR])(Image.fromarray(swapped_msk))
+    swapped_msk = (swapped_msk * 255).long().to(opts.device).unsqueeze(0)
 
     if verbose:
-        # hairline_mask_image.save(os.path.join(save_dir, "hairline_mask.png"))
+        swapped_face_image.save(os.path.join(save_dir, 'swapped_face_inpainting.png'))
+        swapped_mask_inpainting_onehot = torch_utils.labelMap2OneHot(swapped_msk, num_cls = opts.num_seg_cls)
+        torch_utils.tensor2map(swapped_mask_inpainting_onehot[0]).save(os.path.join(save_dir,"swapped_mask_inpainting.png"))
+    """
 
-        # mask_face = F.interpolate(mask_face.float(), (1024, 1024), mode='bilinear', align_corners=False)
-        # mask_face_image = Image.fromarray(255 * mask_face[0, 0, :, :].cpu().numpy().astype(np.uint8))
-        # mask_face_image.save(os.path.join(save_dir, "face_mask.png"))
-        # target_face_image = Image.fromarray(255 * target_face[0, 0, :, :].cpu().numpy().astype(np.uint8))
-        # target_face_image.save(os.path.join(save_dir, "target_face_mask.png"))
-        # Image.fromarray(np.uint8(np.repeat(mask_face_swapped * 255, 3, axis=-1))).save(os.path.join(save_dir, "face_mask.png"))
-
-        swapped_and_pasted.save(os.path.join(save_dir, "swapped_and_pasted.png"))
-        Image.fromarray(np.uint8(content_mask[:, :, 0] * 255)).save(os.path.join(save_dir, "content_mask.png"))
-        Image.fromarray(np.uint8(border_mask * 255)).save(os.path.join(save_dir, 'face_seam_mask.png'))
-    '''
-
+    # (6) 最后贴回去
     outer_dilation = 5  # 这个值可以调节
-    mask_bg = logical_or_reduce(*[swapped_msk == clz for clz in [0, 11, 4, 8, 7     ]])   # 4,8,7  # 如果是视频换脸，考虑把头发也弄进来当做背景的一部分, 11 earings 4 hair 8 neck 7 ear
+    mask_bg = logical_or_reduce(*[swapped_msk == clz for clz in [0, 11, 4     ]])   # 4,8,7  # 如果是视频换脸，考虑把头发也弄进来当做背景的一部分, 11 earings 4 hair 8 neck 7 ear
     is_foreground = torch.logical_not(mask_bg)
     hole_index = hole_mask[None][None]
     is_foreground[hole_index[None]] = True
@@ -653,47 +565,18 @@ def faceSwapping_pipeline(source,
 
     pasted_image = pasted_image.convert('RGB')
     pasted_image = Image.fromarray(blending(np.array(T), np.array(pasted_image), mask=hairline_mask))
-    
-    swapped_and_pasted = pasted_image
-    # swapped_and_pasted = T
-
-    if only_target_crop:                
-    # 按照crop贴回去    
-        inv_trans_coeffs, orig_image = inv_transforms[0], orig_images[0]
-        swapped_and_pasted = swapped_and_pasted.convert('RGBA')
-        pasted_image = orig_image.convert('RGBA')
-        swapped_and_pasted.putalpha(255)
-        projected = swapped_and_pasted.transform(orig_image.size, Image.PERSPECTIVE, inv_trans_coeffs, Image.BILINEAR)
-        pasted_image.alpha_composite(projected)
-
-        # pasted_image.save(os.path.join(save_dir, result_name))
-    elif need_crop:                
-        # 按照crop贴回去 
-        inv_trans_coeffs, orig_image = inv_transforms[1], orig_images[1]
-        swapped_and_pasted = swapped_and_pasted.convert('RGBA')
-        pasted_image = orig_image.convert('RGBA')
-        swapped_and_pasted.putalpha(255)
-        projected = swapped_and_pasted.transform(orig_image.size, Image.PERSPECTIVE, inv_trans_coeffs, Image.BICUBIC)
-        pasted_image.alpha_composite(projected)
-        # pasted_image.save(os.path.join(save_dir, result_name))
-    else:
-        # 直接贴，但是脸部和背景融合的地方 smooth一下
-        if outer_dilation == 0:
-            pasted_image = smooth_face_boundry(swapped_face_image, T, content_mask_image, radius=outer_dilation)
-        else:
-            pasted_image = smooth_face_boundry(swapped_face_image, T, full_mask_image, radius=outer_dilation)
-        # pasted_image.save(os.path.join(save_dir, result_name))
 
     return pasted_image
     
+    
 @torch.no_grad()
 def interpolation(souece_name, target_name):
-    T = Image.open("/apdcephfs/share_1290939/zhianliu/datasets/CelebA-HQ/test/images/%s.jpg"%target_name).convert("RGB").resize((1024, 1024))
-    save_dir = "/apdcephfs/share_1290939/zhianliu/py_projects/our_editing/tmp"
+    T = Image.open("{}/CelebA-HQ/test/images/%s.jpg".format(DATASETS_ROOT)%target_name).convert("RGB").resize((1024, 1024))
+    save_dir = "{}/our_editing/tmp".format(SHARE_PY_ROOT)
     result_name = "swap_%s_to_%s"%(souece_name, target_name)
-    style_vectors1 =  torch.load("/apdcephfs/share_1290939/zhianliu/py_projects/our_editing/tmp/swapped_style_vec.pt")
-    style_vectors2 =  torch.load("/apdcephfs/share_1290939/zhianliu/py_projects/our_editing/tmp/T_style_vec.pt")
-    mask = torch.from_numpy(np.array(Image.open("/apdcephfs/share_1290939/zhianliu/py_projects/our_editing/tmp/swappedMask.png").convert("L")))
+    style_vectors1 =  torch.load("{}/our_editing/tmp/swapped_style_vec.pt".format(SHARE_PY_ROOT))
+    style_vectors2 =  torch.load("{}/our_editing/tmp/T_style_vec.pt".format(SHARE_PY_ROOT))
+    mask = torch.from_numpy(np.array(Image.open("{}/our_editing/tmp/swappedMask.png".format(SHARE_PY_ROOT)).convert("L")))
     
     mask = mask.unsqueeze(0).unsqueeze(0).long().to(opts.device)
     onehot = torch_utils.labelMap2OneHot(mask, num_cls=opts.num_seg_cls)
@@ -746,3 +629,19 @@ def interpolation(souece_name, target_name):
         else:
             pasted_image = smooth_face_boundry(intermediate_result_image, T, full_mask_image, radius=outer_dilation)
         pasted_image.save(os.path.join(save_dir, "%s_%d.png"%(result_name,i+1)))
+
+    
+# 换脸 & 插值
+"""
+source_names = ["28688"]
+target_names = ["28558"]
+image_dir = "{}/CelebA-HQ/test/images".format(DATASETS_ROOT)
+label_dir = "{}/CelebA-HQ/test/labels".format(DATASETS_ROOT)
+for source_name, target_name in zip(source_names, target_names):
+    source = os.path.join(image_dir, "%s.jpg"%source_name)
+    target = os.path.join(image_dir, "%s.jpg"%target_name)
+    target_mask = Image.open(os.path.join(label_dir, "%s.png"%target_name)).convert("L")
+    target_mask_seg12 = __celebAHQ_masks_to_faceParser_mask_detailed(target_mask)      
+    faceSwapping_pipeline(source, target, opts, save_dir=TMP_ROOT, target_mask = target_mask_seg12, need_crop = False, verbose = True) 
+    interpolation(source_name, target_name)
+"""

@@ -7,9 +7,12 @@ from numpy import linalg as LA
 import glob
 import cv2
 
+from e4s2024 import TMP_ROOT, SHARE_PY_ROOT, DATASETS_ROOT
+
+
 def show_hole_map():
-    img = Image.open("./tmp/swap_28285_to_28018.png").convert("RGB")
-    hole_map = Image.open("./tmp/hole_map.png").convert("L").resize((img.height, img.width))
+    img = Image.open(os.path.join(TMP_ROOT, "swap_28285_to_28018.png")).convert("RGB")
+    hole_map = Image.open(os.path.join(TMP_ROOT, "hole_map.png")).convert("L").resize((img.height, img.width))
     img_arr = np.array(img)
     hole_arr = np.array(hole_map)
 
@@ -21,9 +24,9 @@ def show_hole_map():
 
 
 def ablation_recon_compare():  # ablation study 的可视化比较
-    gt_base_dir = "/apdcephfs/share_1290939/zhianliu/datasets/CelebA-HQ/test/images"
-    recon_base_dir = "/apdcephfs/share_1290939/zhianliu/py_projects/pytorch-DDP-demo/work_dirs/ablation_study/"
-    save_dir = "/apdcephfs/share_1290939/zhianliu/py_projects/pytorch-DDP-demo/work_dirs/ablation_study/recon_comp"
+    gt_base_dir = "{}/CelebA-HQ/test/images".format(DATASETS_ROOT)
+    recon_base_dir = "{}/pytorch-DDP-demo/work_dirs/ablation_study/".format(SHARE_PY_ROOT)
+    save_dir = "{}/pytorch-DDP-demo/work_dirs/ablation_study/recon_comp".format(SHARE_PY_ROOT)
     
     exp_names = [
         "v_15_baseline_seg12_finetuneGD_8A100_remainLyrIdx13_flip_celeba_200KIters_reRun2",
@@ -215,8 +218,8 @@ def comp_expression_with_SOTA():
 
 def show_occlussion():
     
-    driven = np.array(Image.open("./tmp/D_recon.png").convert("RGB").resize((512,512)))
-    driven_mask = np.array(Image.open("./tmp/D_mask.png").convert("L"))
+    driven = np.array(Image.open(os.path.join(TMP_ROOT, "D_recon.png")).convert("RGB").resize((512,512)))
+    driven_mask = np.array(Image.open(os.path.join(TMP_ROOT, "D_mask.png")).convert("L"))
     # 脸部区域，也就是 除了背景、头发、belowface、耳朵的区域
     driven_hair_bg_neck_region = np.logical_or(
         np.logical_or(np.equal(driven_mask, 0), np.equal(driven_mask, 4)),
@@ -226,11 +229,11 @@ def show_occlussion():
     driven_non_face_region = np.logical_or(driven_hair_bg_neck_region, driven_ear_earings_region)
     driven_face_region = np.logical_not(driven_non_face_region)
     driven_face = driven_face_region[:,:,None] * driven
-    Image.fromarray(driven_face).save("./tmp/driven_face.png")
+    Image.fromarray(driven_face).save(os.path.join(TMP_ROOT, "driven_face.png"))
     
     
-    target = np.array(Image.open("./tmp/T_recon.png").convert("RGB").resize((512,512)))
-    target_mask = np.array(Image.open("./tmp/T_mask.png").convert("L"))
+    target = np.array(Image.open(os.path.join(TMP_ROOT, "T_recon.png")).convert("RGB").resize((512,512)))
+    target_mask = np.array(Image.open(os.path.join(TMP_ROOT, "T_mask.png")).convert("L"))
     # 脸部区域，也就是 除了背景、头发、belowface、耳朵的区域
     target_hair_bg_neck_region = np.logical_or(
         np.logical_or(np.equal(target_mask, 0), np.equal(target_mask, 4)),
@@ -240,29 +243,29 @@ def show_occlussion():
     target_non_face_region = np.logical_or(target_hair_bg_neck_region, target_ear_earings_region)
     target_face_region = np.logical_not(target_non_face_region)
     target_face = target_face_region[:,:,None] * target
-    Image.fromarray(target_face).save("./tmp/target_face.png")
+    Image.fromarray(target_face).save(os.path.join(TMP_ROOT, "target_face.png"))
     
     # source 缺失的皮肤区域, driven是0，target是1的区域
     missing_area = np.logical_and(driven_face_region == False, target_face_region == True)
-    Image.fromarray((255*missing_area).astype(np.uint8)).save("./tmp/missing_area.png")
+    Image.fromarray((255*missing_area).astype(np.uint8)).save(os.path.join(TMP_ROOT, "missing_area.png"))
     # 缺失区域 在source中是什么
-    image = cv2.imread("./tmp/D_recon.png")
-    mask = cv2.imread("./tmp/missing_area.png")
+    image = cv2.imread(os.path.join(TMP_ROOT, "D_recon.png"))
+    mask = cv2.imread(os.path.join(TMP_ROOT, "missing_area.png"))
     image = cv2.resize(image, (512, 512))
     red = [0,0,255]
     colored_missing_area = image + red * (mask/255.) * 1
-    cv2.imwrite('./tmp/colored_missing_area.png', colored_missing_area)
+    cv2.imwrite(os.path.join(TMP_ROOT, 'colored_missing_area.png'), colored_missing_area)
     
     # target 遮挡的区域, driven是1，target是0的区域
     occluded_area = np.logical_and(driven_face_region == True, target_face_region == False)
-    Image.fromarray((255*occluded_area).astype(np.uint8)).save("./tmp/occluded_area.png")
+    Image.fromarray((255*occluded_area).astype(np.uint8)).save(os.path.join(TMP_ROOT, "occluded_area.png"))
     # 遮挡区域 在target 中是什么
     image = cv2.imread("/apdcephfs/share_1290939/zhianliu/datasets/CelebA-HQ/test/images/28527.jpg")
-    mask = cv2.imread("./tmp/occluded_area.png")
+    mask = cv2.imread(os.path.join(TMP_ROOT, "occluded_area.png"))
     image = cv2.resize(image, (512, 512))
     blue = [255,0,0]
     colored_occluded_area = image + blue * (mask/255.) * 1
-    cv2.imwrite('./tmp/colored_occluded_area.png', colored_occluded_area)
+    cv2.imwrite(os.path.join(TMP_ROOT, 'colored_occluded_area.png'), colored_occluded_area)
     
     
     

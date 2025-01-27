@@ -1,4 +1,7 @@
+import os
 from argparse import ArgumentParser
+
+from e4s2024 import PRETRAINED_ROOT, SHARE_MODELS_ROOT
 
 
 class OptimOptions:
@@ -22,7 +25,7 @@ class OptimOptions:
 		self.parser.add_argument('--train_G', default=False, type=bool, help='Whether to train the styleGAN model')
   
         # ================= 数据集 相关 =====================
-		self.parser.add_argument('--dataset_root', default='/apdcephfs/share_1290939/zhianliu/datasets/CelebA-HQ', type=str, help='dataset root path')
+		self.parser.add_argument('--dataset_root', default='{}/CelebA-HQ'.format(DATASETS_ROOT), type=str, help='dataset root path')
 		self.parser.add_argument('--ds_frac', default=1.0, type=float, help='dataset fraction')
 		self.parser.add_argument('--test_batch_size', default=1, type=int, help='Batch size for testing and inference')
 		self.parser.add_argument('--test_workers', default=4, type=int, help='Number of test/inference dataloader workers')
@@ -52,9 +55,9 @@ class OptimOptions:
 		self.parser.add_argument('--l2_lambda', default=1.0, type=float, help='L2 loss multiplier factor')
 		# self.parser.add_argument('--ir_se50_path', default='/apdcephfs_cq2/share_1290939/branchwang/pretrained_models/pixel2style2pixel/model_ir_se50.pth', type=str, help='Path to ir_se50 model weights')
 		self.parser.add_argument('--ir_se50_path',
-								 default='./pretrained/pixel2style2pixel/model_ir_se50.pth',
+								 default=os.path.join(PRETRAINED_ROOT, 'pixel2style2pixel', 'model_ir_se50.pth'),
 								 type=str, help='Path to ir_se50 model weights')
-		self.parser.add_argument('--face_parsing_model_path', default='/apdcephfs_cq2/share_1290939/branchwang/pretrained_models/CelebA-Mask-HQ-faceParser/model.pth', type=str, help='Path to face parsing model weights')
+		self.parser.add_argument('--face_parsing_model_path', default='{}/CelebA-Mask-HQ-faceParser/model.pth'.format(SHARE_MODELS_ROOT), type=str, help='Path to face parsing model weights')
 	
 	def parse(self):
 		opts = self.parser.parse_args()

@@ -7,6 +7,18 @@ from torch.nn import functional as F
 
 from .ops.fused_act import FusedLeakyReLU, fused_leaky_relu
 from .ops.upfirdn2d import upfirdn2d
+
+import sys
+import types
+from torchvision.transforms.functional import rgb_to_grayscale
+
+# Create a module for `torchvision.transforms.functional_tensor`
+functional_tensor = types.ModuleType("torchvision.transforms.functional_tensor")
+functional_tensor.rgb_to_grayscale = rgb_to_grayscale
+
+# Add this module to sys.modules so other imports can access it
+sys.modules["torchvision.transforms.functional_tensor"] = functional_tensor
+
 from basicsr.utils.registry import ARCH_REGISTRY
 
 

@@ -2,6 +2,7 @@ import numpy as np
 from torch.utils.data import DataLoader
 import torchvision.transforms as transforms
 from datasets.dataset import CelebAHQDataset, get_transforms, TO_TENSOR, NORMALIZE, MASK_CONVERT_TF, MASK_CONVERT_TF_DETAILED
+from e4s2024 import DATASETS_ROOT
 from models.networks import Net,Net2,Net3,NetStage2
 from options.edit_options import EditOptions
 import os
@@ -19,12 +20,12 @@ from utils.morphology import dilation
 import copy
 import cv2
 
-sys.path.append(".")
 sys.path.append("..")
+sys.path.append("../..")
 
-label_dir = "/apdcephfs/share_1290939/zhianliu/datasets/CelebA-HQ/test/labels"
-image_dir = "/apdcephfs/share_1290939/zhianliu/datasets/CelebA-HQ/test/images"
-lael_vis_dir = "/apdcephfs/share_1290939/zhianliu/datasets/CelebA-HQ/test/vis"
+label_dir = "{}/CelebA-HQ/test/labels".format(DATASETS_ROOT)
+image_dir = "{}/CelebA-HQ/test/images".format(DATASETS_ROOT)
+lael_vis_dir = "{}/CelebA-HQ/test/vis".format(DATASETS_ROOT)
 
 high_quality_imgs = [
     21,22,25,35,41,51,60,61,62,63,69,83,90,97,109,
@@ -258,7 +259,7 @@ class Editor:
 
         onehot = torch_utils.labelMap2OneHot(mask_cp, num_cls=self.opts.num_seg_cls)
         
-        # torch_utils.tensor2map(onehot[0]).save("./tmp/a.png")
+        # torch_utils.tensor2map(onehot[0]).save(os.path.join(TMP_ROOT, "a.png"))
         return onehot
         
     def prepare_img_pairs(self, edit_mode):

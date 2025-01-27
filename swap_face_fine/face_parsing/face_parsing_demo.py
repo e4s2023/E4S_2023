@@ -10,7 +10,8 @@ import torchvision
 from torch.nn import functional as F
 
 from datasets.dataset import __ffhq_masks_to_faceParser_mask_detailed
-from swap_face_fine.face_parsing.model import BiSeNet, seg_mean, seg_std
+if not os.environ.get("SKIP_RUN", False):
+    from swap_face_fine.face_parsing.model import BiSeNet, seg_mean, seg_std
 
 class BicubicDownSample(nn.Module):
     def bicubic_kernel(self, x, a=-0.50):
@@ -170,8 +171,8 @@ class FaceParser(nn.Module):
         seg = torch.argmax(down_seg, dim=1)[0].long()
         
         # print(np.unique(seg))
-        # cv2.imwrite(os.path.join("./tmp", "mask"+os.path.basename(img_path)), seg.astype(np.uint8))
-        # vis_parsing_maps(img_path, seg, stride=1, save_im=True, save_path=os.path.join("./tmp", os.path.basename(img_path)))
+        # cv2.imwrite(os.path.join(TMP_ROOT, "mask"+os.path.basename(img_path)), seg.astype(np.uint8))
+        # vis_parsing_maps(img_path, seg, stride=1, save_im=True, save_path=os.path.join(TMP_ROOT, os.path.basename(img_path)))
 
         return seg
 
@@ -180,7 +181,7 @@ class FaceParser(nn.Module):
 def init_faceParsing_pretrained_model(ckpt_path):
     parser = FaceParser(seg_ckpt=ckpt_path)
 
-    print("Load faceParsing pre-traiend model success!")
+    print("Load faceParsing pre-trained model success!")
 
     return parser
 

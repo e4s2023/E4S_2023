@@ -4,6 +4,9 @@ import os
 from PIL import Image
 import numpy as np
 
+from e4s2024 import DATASETS_ROOT
+
+
 # from datasets.dataset import __celebAHQ_masks_to_faceParser_mask_detailed
 # from Face_swap_with_two_imgs import FaceSwap
 
@@ -43,16 +46,16 @@ os.makedirs(save_dir, exist_ok=True)
 
 for src_idx, tgt_idx in zip(src_indices, tgt_indices):
     # Face swapping procedure
-    source = '/apdcephfs/share_1290939/zhianliu/datasets/CelebA-HQ/test/images/' + src_idx + '.jpg'
+    source = '{}/CelebA-HQ/test/images/'.format(DATASETS_ROOT) + src_idx + '.jpg'
     if not os.path.exists(source):
-        source = '/apdcephfs/share_1290939/zhianliu/datasets/CelebA-HQ/train/images/' +src_idx + '.jpg'
+        source = '{}/CelebA-HQ/train/images/'.format(DATASETS_ROOT) +src_idx + '.jpg'
 
-    target = '/apdcephfs/share_1290939/zhianliu/datasets/CelebA-HQ/test/images/' + tgt_idx + '.jpg'
+    target = '{}/CelebA-HQ/test/images/'.format(DATASETS_ROOT) + tgt_idx + '.jpg'
     if not os.path.exists(target):
-        target = '/apdcephfs/share_1290939/zhianliu/datasets/CelebA-HQ/train/images/' + tgt_idx + '.jpg'
-        tgt_mask = Image.open('/apdcephfs/share_1290939/zhianliu/datasets/CelebA-HQ/train/labels/' + tgt_idx + '.png').convert('L')
+        target = '{}/CelebA-HQ/train/images/'.format(DATASETS_ROOT) + tgt_idx + '.jpg'
+        tgt_mask = Image.open('{}/CelebA-HQ/train/labels/'.format(DATASETS_ROOT) + tgt_idx + '.png').convert('L')
     else:
-        tgt_mask = Image.open('/apdcephfs/share_1290939/zhianliu/datasets/CelebA-HQ/test/labels/' + tgt_idx + '.png').convert('L')
+        tgt_mask = Image.open('{}/CelebA-HQ/test/labels/'.format(DATASETS_ROOT) + tgt_idx + '.png').convert('L')
     # target_mask_seg12 = __celebAHQ_masks_to_faceParser_mask_detailed(tgt_mask)
 
     os.system('cp ' + source + ' ' + save_dir)

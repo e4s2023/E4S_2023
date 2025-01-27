@@ -10,13 +10,16 @@ from tqdm import tqdm
 import pandas as pd
 import shutil
 
+from e4s2024 import SHARE_PY_ROOT, DATASETS_ROOT, PRETRAINED_SHARE_ROOT
+
+
 def mv_imgs():
-    recon_base_dir = "/apdcephfs/share_1290939/zhianliu/py_projects/pytorch-DDP-demo/work_dirs/v_15_hybrid_stage1_seg12_finetuneGD_8A100_pspHyperParas_remainLyrIdx13_flip_200KIters/optim_Results_120000_lr1e2"
+    recon_base_dir = "{}/pytorch-DDP-demo/work_dirs/v_15_hybrid_stage1_seg12_finetuneGD_8A100_pspHyperParas_remainLyrIdx13_flip_200KIters/optim_Results_120000_lr1e2".format(SHARE_PY_ROOT)
 
     for img_name in tqdm(range(2000)):
         shutil.copyfile(
             osp.join(recon_base_dir,"%05d"%(img_name+28000),"%05d_0050.png"%(img_name+28000)),
-            osp.join("/apdcephfs/share_1290939/zhianliu/pretrained_models/sofGAN/tmp","%05d_0050.png"%(img_name+28000)),
+            osp.join("{}/sofGAN/tmp".format(PRETRAINED_SHARE_ROOT),"%05d_0050.png"%(img_name+28000)),
         )
 
 def calculate_metrics(size=1024):
@@ -39,10 +42,10 @@ def calculate_metrics(size=1024):
         # recon_base_dir = "/apdcephfs/share_1290939/zhianliu/py_projects/pytorch-DDP-demo/work_dirs/v_15_hybrid_stage1_seg12_finetuneGD_8A100_pspHyperParas/"
         # recon_base_dir = "/apdcephfs/share_1290939/zhianliu/py_projects/pytorch-DDP-demo/work_dirs/v_15_hybrid_stage1_seg12_finetuneGD_8A100_pspHyperParas_remainLyrIdx13_flip_200KIters/"
         # recon_base_dir = "/apdcephfs/share_1290939/zhianliu/pretrained_models/sofGAN/optim_res_dir_iters1K"
-        recon_base_dir = "/apdcephfs/share_1290939/zhianliu/py_projects/pytorch-DDP-demo/work_dirs/ablation_study/v_15_exp8_seg12_finetuneGD_8A100_remainLyrIdx13_flip_celeba_200KIters_noMsEncoder/test_recon_200000"
+        recon_base_dir = "{}/pytorch-DDP-demo/work_dirs/ablation_study/v_15_exp8_seg12_finetuneGD_8A100_remainLyrIdx13_flip_celeba_200KIters_noMsEncoder/test_recon_200000".format(SHARE_PY_ROOT)
         recon = np.asarray(Image.open(osp.join(recon_base_dir,"%05d_recon_face.png"%(img_name+28000))).resize((size, size)))
 
-        gt_base_dir = "/apdcephfs/share_1290939/zhianliu/datasets/CelebA-HQ/test/images"
+        gt_base_dir = "{}/CelebA-HQ/test/images".format(DATASETS_ROOT)
         gt = np.asarray(Image.open(osp.join(gt_base_dir,"%05d.jpg"%(img_name+28000))).resize((size, size)))
         
         img_names.append("%05d_recon_face.jpg"%(img_name+28000))
@@ -74,11 +77,11 @@ def metric_test(metric_opt="ssim",size=1024):
     
     Metrics = []
     for img_name in ["28006","28022","28031","28092","28101","28221","28298","28314","28352","28363","28380","28381","28394","28541","28905","29057","29258"]:
-        recon = np.asarray(Image.open("/apdcephfs/share_1290939/zhianliu/py_projects/pytorch-DDP-demo/work_dirs/"
-                                "v_14_hybridStage1_seg12_fixedGD_8V100_pspHyperParas/optim_Results_80000_lr1e2/%s/%s_0050.png"%(img_name,img_name)).resize((size, size)))
+        recon = np.asarray(Image.open("{}/pytorch-DDP-demo/work_dirs/"
+                                "v_14_hybridStage1_seg12_fixedGD_8V100_pspHyperParas/optim_Results_80000_lr1e2/%s/%s_0050.png".format(SHARE_PY_ROOT) % (img_name, img_name)).resize((size, size)))
 
-        gt = np.asarray(Image.open("/apdcephfs/share_1290939/zhianliu/py_projects/pytorch-DDP-demo/work_dirs/"
-                                "v_14_hybridStage1_seg12_fixedGD_8V100_pspHyperParas/optim_Results_80000_lr1e2/%s/%s_gt.png"%(img_name,img_name)).resize((size, size)))
+        gt = np.asarray(Image.open("{}/pytorch-DDP-demo/work_dirs/"
+                                "v_14_hybridStage1_seg12_fixedGD_8V100_pspHyperParas/optim_Results_80000_lr1e2/%s/%s_gt.png".format(SHARE_PY_ROOT) % (img_name, img_name)).resize((size, size)))
         
         if metric_opt == "ssim":
             # 注意，在算SSIM的时候，对于RGB图要指定 multichannel=True，并且范围为 255
@@ -120,8 +123,8 @@ def ssim(gt_imgs_path, imgs_path, size=1024):
 # ========================== PSNR ====================================    
 def psnr_test():
     
-    gt = np.asarray(Image.open("/apdcephfs/share_1290939/zhianliu/py_projects/our_editing/metric/29057.jpg").resize((512, 512)))
-    recon = np.asarray(Image.open("/apdcephfs/share_1290939/zhianliu/py_projects/our_editing/metric/29057recon.png").resize((512, 512)))
+    gt = np.asarray(Image.open("{}/our_editing/metric/29057.jpg".format(SHARE_PY_ROOT)).resize((512, 512)))
+    recon = np.asarray(Image.open("{}/our_editing/metric/29057recon.png".format(SHARE_PY_ROOT)).resize((512, 512)))
 
     psnr = compare_psnr(gt,recon, data_range=255)
 
@@ -146,8 +149,8 @@ def psnr(gt_imgs_path, imgs_path, size=1024):
 # ========================== RMSE ====================================
 def rmse_test():
     
-    gt = np.asarray(Image.open("/apdcephfs/share_1290939/zhianliu/py_projects/our_editing/metric/29057.jpg").resize((512, 512))) /255
-    recon = np.asarray(Image.open("/apdcephfs/share_1290939/zhianliu/py_projects/our_editing/metric/29057recon.png").resize((512, 512))) /255
+    gt = np.asarray(Image.open("{}/our_editing/metric/29057.jpg".format(SHARE_PY_ROOT)).resize((512, 512))) / 255
+    recon = np.asarray(Image.open("{}/our_editing/metric/29057recon.png".format(SHARE_PY_ROOT)).resize((512, 512))) / 255
     
     mse = compare_mse(gt,recon)
     rmse = np.sqrt(mse)

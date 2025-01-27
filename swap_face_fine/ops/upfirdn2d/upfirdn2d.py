@@ -6,8 +6,8 @@ from torch.autograd import Function
 from torch.nn import functional as F
 
 # BASICSR_JIT = os.getenv('BASICSR_JIT')
-BASICSR_JIT = 'True'
-if BASICSR_JIT == 'True':
+ACCELERATOR = os.environ.get('ACCELERATOR', 'cuda')
+if ACCELERATOR == 'cuda':
     from torch.utils.cpp_extension import load
     module_path = os.path.dirname(__file__)
     upfirdn2d_ext = load(

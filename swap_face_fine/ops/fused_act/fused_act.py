@@ -6,17 +6,20 @@ from torch import nn
 from torch.autograd import Function
 
 # BASICSR_JIT = os.getenv('BASICSR_JIT')
-BASICSR_JIT = 'True'
-if BASICSR_JIT == 'True':
-    from torch.utils.cpp_extension import load
-    module_path = os.path.dirname(__file__)
-    fused_act_ext = load(
-        'fused',
-        sources=[
-            os.path.join(module_path, 'src', 'fused_bias_act.cpp'),
-            os.path.join(module_path, 'src', 'fused_bias_act_kernel.cu'),
-        ],
-    )
+ACCELERATOR = os.environ.get('ACCELERATOR', 'cuda')
+
+if ACCELERATOR == 'cuda':
+    BASICSR_JIT = 'True'
+    if BASICSR_JIT == 'True':
+        from torch.utils.cpp_extension import load
+        module_path = os.path.dirname(__file__)
+        fused_act_ext = load(
+            'fused',
+            sources=[
+                os.path.join(module_path, 'src', 'fused_bias_act.cpp'),
+                os.path.join(module_path, 'src', 'fused_bias_act_kernel.cu'),
+            ],
+        )
 else:
     try:
         from . import fused_act_ext

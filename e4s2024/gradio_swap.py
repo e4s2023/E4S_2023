@@ -1,21 +1,13 @@
 import os
 import uuid
-import glob
-import shutil
-from pathlib import Path
-from multiprocessing.pool import Pool
 
 import gradio as gr
-import torch
-from torchvision import transforms
 
 import cv2
-import numpy as np
 from PIL import Image
-from tqdm import tqdm
 
-from Face_swap_with_two_imgs import FaceSwap
-from face_swap_video_pipeline import FaceSwapVideoPipeline
+from e4s2024.Face_swap_with_two_imgs import FaceSwap
+from e4s2024.face_swap_video_pipeline import FaceSwapVideoPipeline
 from options.our_swap_face_pipeline_options import OurSwapFacePipelineOptions
 
 
@@ -113,9 +105,10 @@ def swap_video_gr(img1, target_video, frames_cnt, use_crop, use_pti,
     return result_path
 
 
-if __name__ == "__main__":
-    global_holder = {}
+global_holder = {}
 
+
+if __name__ == "__main__":
     with gr.Blocks() as demo:
         gr.Markdown("E4S: Fine-Grained Face Swapping via Regional GAN Inversion")
 

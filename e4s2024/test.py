@@ -17,8 +17,8 @@ from tqdm import tqdm
 import numpy as np
 from PIL import Image
 
-sys.path.append(".")
 sys.path.append("..")
+sys.path.append("../..")
 
 
 class Tester:
